@@ -4,8 +4,8 @@ import { Providers } from "./providers";
 import { Header } from "./_components/Header";
 
 export const metadata: Metadata = {
-  title: "Frontend Starter Kit",
-  description: "Next.js Frontend Starter Kit by @muhammadfathurraiyan for @monklabs",
+  title: "NusaKarya",
+  description: "Platform untuk sertifikasi dan lisensi karya digital dengan teknologi blockchain",
 };
 
 export default function RootLayout({
