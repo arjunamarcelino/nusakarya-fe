@@ -1,0 +1,31 @@
+@theme inline {
+  --color-background: #111111;
+  --color-foreground: #fafafa;
+
+  /* NusaKarya Brand Colors */
+  --color-nusa-blue: #1E4D8B;
+  --color-karya-gold: #F5B041;
+  --color-deep-navy: #0C2039;
+  --color-ivory-white: #F9F9F9;
+  --color-slate-gray: #6C757D;
+  --color-accent-red: #E74C3C;
+
+  /* Typography - Font Families */
+  --font-dmSans: "DM-Sans", sans-serif;
+  --font-heading: "Poppins", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+
+  /* Typography - Font Sizes */
+  --font-size-h1: 48px;
+  --font-size-h2: 36px;
+  --font-size-h3: 28px;
+  --font-size-body: 16px;
+  --font-size-small: 14px;
+
+  /* Typography - Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+}
