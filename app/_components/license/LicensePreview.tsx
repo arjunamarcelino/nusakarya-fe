@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "../ui/Button";
+import { PrimaryButton } from "../ui/Button";
 import { DigitalWork, LicenseFormData } from "./types";
 import Image from "next/image";
 
@@ -151,21 +151,20 @@ export function LicensePreview({ work, formData, onPublish, onEdit, isLoading = 
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-4 mt-8">
-        <Button
-          variant="outline"
+        <PrimaryButton
           onClick={onEdit}
           className="flex-1"
           disabled={isLoading}
         >
           ✏️ Edit
-        </Button>
-        <Button
+        </PrimaryButton>
+        <PrimaryButton
           onClick={onPublish}
-          className="flex-1 bg-[var(--color-nusa-blue)] hover:bg-[var(--color-deep-navy)] text-white font-semibold"
+          className="flex-1"
           disabled={isLoading}
         >
           {isLoading ? '⏳ Mempublikasikan...' : '🚀 Publikasikan Lisensi'}
-        </Button>
+        </PrimaryButton>
       </div>
 
       {/* Info Box */}

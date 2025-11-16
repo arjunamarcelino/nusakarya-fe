@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "../styles/index.css";
 import { Providers } from "./providers";
-import { Header } from "./_components/Header";
 
 export const metadata: Metadata = {
   title: "NusaKarya",
@@ -23,9 +22,10 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="NusaKarya" />
         <link rel="manifest" href="/site.webmanifest" />
       </head>
-      <body>
-        <Header />
-        <Providers>{children}</Providers>
+      <body className="bg-white text-foreground">
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

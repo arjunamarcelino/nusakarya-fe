@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "../ui/Button";
+import { PrimaryButton } from "../ui/Button";
 import { LicenseTransaction } from "./types";
 
 interface TransactionHistoryProps {
@@ -139,44 +139,34 @@ export function TransactionHistory({ transactions, isLoading = false }: Transact
       {/* Filters */}
       <div className="flex flex-wrap gap-4 mb-6">
         <div className="flex space-x-2">
-          <Button
-            variant={filterType === "all" ? "default" : "outline"}
-            size="sm"
+          <PrimaryButton
             onClick={() => setFilterType("all")}
           >
             Semua
-          </Button>
-          <Button
-            variant={filterType === "purchase" ? "default" : "outline"}
-            size="sm"
+          </PrimaryButton>
+          <PrimaryButton
             onClick={() => setFilterType("purchase")}
           >
             🛒 Pembelian
-          </Button>
-          <Button
-            variant={filterType === "royalty" ? "default" : "outline"}
-            size="sm"
+          </PrimaryButton>
+          <PrimaryButton
             onClick={() => setFilterType("royalty")}
           >
             💰 Royalti
-          </Button>
+          </PrimaryButton>
         </div>
         
         <div className="flex space-x-2">
-          <Button
-            variant={sortBy === "newest" ? "default" : "outline"}
-            size="sm"
+          <PrimaryButton
             onClick={() => setSortBy("newest")}
           >
             Terbaru
-          </Button>
-          <Button
-            variant={sortBy === "oldest" ? "default" : "outline"}
-            size="sm"
+          </PrimaryButton>
+          <PrimaryButton
             onClick={() => setSortBy("oldest")}
           >
             Terlama
-          </Button>
+          </PrimaryButton>
         </div>
       </div>
 
@@ -244,14 +234,12 @@ export function TransactionHistory({ transactions, isLoading = false }: Transact
                     <code className="text-sm font-mono text-[var(--color-deep-navy)]">
                       {formatAddress(transaction.transactionHash)}
                     </code>
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                    <PrimaryButton
                       onClick={() => window.open(`https://polygonscan.com/tx/${transaction.transactionHash}`, '_blank')}
                       className="px-2"
                     >
                       🔗
-                    </Button>
+                    </PrimaryButton>
                   </div>
                 </div>
               </div>

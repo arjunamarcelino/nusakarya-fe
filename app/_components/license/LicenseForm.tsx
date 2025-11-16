@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "../ui/Button";
+import { PrimaryButton } from "../ui/Button";
 import { DigitalWork, LicenseFormData } from "./types";
 
 interface LicenseFormProps {
@@ -216,22 +216,19 @@ export function LicenseForm({ work, onSubmit, onCancel, isLoading = false }: Lic
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 pt-4">
-          <Button
-            type="button"
-            variant="outline"
+          <PrimaryButton
             onClick={onCancel}
             className="flex-1"
             disabled={isLoading}
           >
             Batal
-          </Button>
-          <Button
-            type="submit"
-            className="flex-1 bg-[var(--color-karya-gold)] hover:bg-[var(--color-karya-gold)]/90 text-[var(--color-deep-navy)] font-semibold"
+          </PrimaryButton>
+          <PrimaryButton
+            className="flex-1"
             disabled={isLoading}
           >
             {isLoading ? '⏳ Membuat...' : '📜 Buat Lisensi'}
-          </Button>
+          </PrimaryButton>
         </div>
       </form>
     </div>

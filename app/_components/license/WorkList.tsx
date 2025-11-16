@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "../ui/Button";
+import { PrimaryButton } from "../ui/Button";
 import { DigitalWork } from "./types";
 import Image from "next/image";
 
@@ -58,41 +58,31 @@ export function WorkList({ works, selectedWork, onWorkSelect, onCreateLicense }:
       {/* Filter */}
       <div className="mb-6">
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant={filterType === "all" ? "default" : "outline"}
-            size="sm"
+          <PrimaryButton
             onClick={() => setFilterType("all")}
           >
             Semua
-          </Button>
-          <Button
-            variant={filterType === "image" ? "default" : "outline"}
-            size="sm"
+          </PrimaryButton>
+          <PrimaryButton
             onClick={() => setFilterType("image")}
           >
             🖼️ Gambar
-          </Button>
-          <Button
-            variant={filterType === "video" ? "default" : "outline"}
-            size="sm"
+          </PrimaryButton>
+          <PrimaryButton
             onClick={() => setFilterType("video")}
           >
             🎥 Video
-          </Button>
-          <Button
-            variant={filterType === "audio" ? "default" : "outline"}
-            size="sm"
+          </PrimaryButton>
+          <PrimaryButton
             onClick={() => setFilterType("audio")}
           >
             🎵 Audio
-          </Button>
-          <Button
-            variant={filterType === "document" ? "default" : "outline"}
-            size="sm"
+          </PrimaryButton>
+          <PrimaryButton
             onClick={() => setFilterType("document")}
           >
             📄 Dokumen
-          </Button>
+          </PrimaryButton>
         </div>
       </div>
 
@@ -106,12 +96,12 @@ export function WorkList({ works, selectedWork, onWorkSelect, onCreateLicense }:
           <p className="text-[var(--color-slate-gray)] mb-6">
             Daftarkan karya digitalmu terlebih dahulu untuk membuat lisensi
           </p>
-          <Button
+          <PrimaryButton
             onClick={() => window.location.href = '/register'}
             className="bg-[var(--color-karya-gold)] hover:bg-[var(--color-karya-gold)]/90 text-[var(--color-deep-navy)] font-semibold"
           >
             🏆 Daftarkan Karya
-          </Button>
+          </PrimaryButton>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -176,9 +166,7 @@ export function WorkList({ works, selectedWork, onWorkSelect, onCreateLicense }:
 
               {/* Action Button */}
               <div className="mt-3">
-                <Button
-                  variant={selectedWork?.id === work.id ? "default" : "outline"}
-                  size="sm"
+                <PrimaryButton
                   className="w-full"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -186,7 +174,7 @@ export function WorkList({ works, selectedWork, onWorkSelect, onCreateLicense }:
                   }}
                 >
                   {selectedWork?.id === work.id ? '✓ Dipilih' : 'Buat Lisensi'}
-                </Button>
+                </PrimaryButton>
               </div>
             </div>
           ))}

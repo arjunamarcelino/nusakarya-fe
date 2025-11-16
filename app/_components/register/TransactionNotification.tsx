@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "../ui/Button";
+import { PrimaryButton } from "../ui/Button";
 
 interface TransactionNotificationProps {
   transaction: {
@@ -121,14 +121,12 @@ export function TransactionNotification({ transaction, onClose }: TransactionNot
               <code className="flex-1 bg-gray-100 px-3 py-2 rounded text-sm font-mono text-[var(--color-deep-navy)] truncate">
                 {transaction.hash}
               </code>
-              <Button
-                variant="ghost"
-                size="sm"
+              <PrimaryButton
                 onClick={() => copyToClipboard(transaction.hash)}
                 className="px-2"
               >
                 📋
-              </Button>
+              </PrimaryButton>
             </div>
           </div>
 
@@ -157,31 +155,29 @@ export function TransactionNotification({ transaction, onClose }: TransactionNot
 
         {/* Action Buttons */}
         <div className="flex space-x-3">
-          <Button
-            variant="outline"
+          <PrimaryButton
             onClick={() => window.open(`https://polygonscan.com/tx/${transaction.hash}`, '_blank')}
             className="flex-1"
           >
             🔍 View on Explorer
-          </Button>
+          </PrimaryButton>
           
           {transaction.status === 'success' && (
-            <Button
+            <PrimaryButton
               onClick={onClose}
               className="flex-1 bg-[var(--color-nusa-blue)] hover:bg-[var(--color-deep-navy)]"
             >
               Lihat Sertifikat
-            </Button>
+            </PrimaryButton>
           )}
           
           {transaction.status === 'failed' && (
-            <Button
+            <PrimaryButton
               onClick={onClose}
-              variant="outline"
               className="flex-1"
             >
               Tutup
-            </Button>
+            </PrimaryButton>
           )}
         </div>
 

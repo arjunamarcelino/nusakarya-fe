@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "../ui/Button";
+import { PrimaryButton } from "../ui/Button";
 
 interface CertificateResultProps {
   certificate: {
@@ -41,14 +41,12 @@ export function CertificateResult({ certificate, onMintAnother }: CertificateRes
   };
 
   const CopyButton = ({ text, field }: { text: string; field: string }) => (
-    <Button
-      variant="ghost"
-      size="sm"
+    <PrimaryButton
       onClick={() => copyToClipboard(text, field)}
       className="px-2"
     >
       {copiedField === field ? '✅' : '📋'}
-    </Button>
+    </PrimaryButton>
   );
 
   return (
@@ -175,28 +173,26 @@ export function CertificateResult({ certificate, onMintAnother }: CertificateRes
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-4">
-        <Button
+        <PrimaryButton
           onClick={() => window.open(certificate.ipfsUrl, '_blank')}
-          variant="outline"
           className="flex-1"
         >
           🔗 Lihat File di IPFS
-        </Button>
+        </PrimaryButton>
         
-        <Button
+        <PrimaryButton
           onClick={() => window.open(`https://polygonscan.com/tx/${certificate.transactionHash}`, '_blank')}
-          variant="outline"
           className="flex-1"
         >
           🔍 Lihat di Explorer
-        </Button>
+        </PrimaryButton>
         
-        <Button
+        <PrimaryButton
           onClick={onMintAnother}
-          className="flex-1 bg-[var(--color-karya-gold)] hover:bg-[var(--color-karya-gold)]/90 text-[var(--color-deep-navy)] font-semibold"
+          className="flex-1"
         >
           🏆 Daftarkan Karya Lain
-        </Button>
+        </PrimaryButton>
       </div>
 
       {/* Success Message */}

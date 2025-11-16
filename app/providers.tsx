@@ -1,5 +1,5 @@
-import { ExampleProviders } from "./_providers/ExampleProviders";
+import AuthProviders from "./_providers/AuthProviders";
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  return <ExampleProviders>{children}</ExampleProviders>;
+  return <AuthProviders>{children}</AuthProviders>;
 }

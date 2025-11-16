@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "../ui/Button";
+import { PrimaryButton } from "../ui/Button";
 
 interface MintCertificateProps {
   onMint: () => void;
@@ -139,11 +139,10 @@ export function MintCertificate({ onMint, isMinting, canMint, file, metadata }: 
 
       {/* Mint Button */}
       <div className="space-y-4">
-        <Button
+        <PrimaryButton
           onClick={onMint}
           disabled={!canMint || isMinting}
-          size="lg"
-          className="w-full bg-[var(--color-karya-gold)] hover:bg-[var(--color-karya-gold)]/90 text-[var(--color-deep-navy)] font-semibold py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full"
         >
           {isMinting ? (
             <div className="flex items-center justify-center space-x-2">
@@ -153,16 +152,14 @@ export function MintCertificate({ onMint, isMinting, canMint, file, metadata }: 
           ) : (
             "🏆 Mint Sertifikat NFT"
           )}
-        </Button>
+        </PrimaryButton>
 
-        <button
-          type="button"
+        <PrimaryButton
           onClick={() => setShowDetails(!showDetails)}
           className="w-full text-center text-sm text-[var(--color-nusa-blue)] hover:text-[var(--color-deep-navy)] transition-colors duration-200"
         >
           {showDetails ? "Sembunyikan" : "Tampilkan"} detail teknis
-        </button>
-
+        </PrimaryButton>
         {showDetails && (
           <div className="bg-gray-50 rounded-lg p-4 text-sm">
             <h5 className="font-semibold text-[var(--color-deep-navy)] mb-2">

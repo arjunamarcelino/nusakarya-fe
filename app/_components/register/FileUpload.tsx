@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { Button } from "../ui/Button";
+import { PrimaryButton } from "../ui/Button";
 
 interface FileUploadProps {
   onFileSelect: (file: File | null) => void;
@@ -110,13 +110,12 @@ export function FileUpload({ onFileSelect, selectedFile, isUploading }: FileUplo
               </p>
             </div>
             
-            <Button
+            <PrimaryButton
               onClick={() => fileInputRef.current?.click()}
-              variant="outline"
               className="mx-auto"
             >
               Pilih File
-            </Button>
+            </PrimaryButton>
             
             <div className="text-sm text-[var(--color-slate-gray)]">
               <p>Format yang didukung: JPG, PNG, GIF, WebP, MP3, WAV, OGG, MP4, WebM</p>
@@ -145,22 +144,18 @@ export function FileUpload({ onFileSelect, selectedFile, isUploading }: FileUplo
               </p>
             </div>
             <div className="flex space-x-2">
-              <Button
-                variant="ghost"
-                size="sm"
+              <PrimaryButton
                 onClick={() => onFileSelect(null)}
                 disabled={isUploading}
               >
                 Hapus
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
+              </PrimaryButton>
+              <PrimaryButton
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
               >
                 Ganti
-              </Button>
+              </PrimaryButton>
             </div>
           </div>
           
