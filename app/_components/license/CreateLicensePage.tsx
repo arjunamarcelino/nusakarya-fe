@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LicenseForm, LicenseFormData } from "./LicenseForm";
+import { LicenseForm } from "./LicenseForm";
 import { DigitalWork } from "./types";
 
 // Mock function to get work by ID - in real app, this would be an API call
@@ -85,7 +85,7 @@ export function CreateLicensePage() {
     setIsLoading(false);
   }, [searchParams, router]);
 
-  const handleSubmit = async (formData: LicenseFormData) => {
+  const handleSubmit = async () => {
     if (!work) return;
 
     setIsSubmitting(true);
