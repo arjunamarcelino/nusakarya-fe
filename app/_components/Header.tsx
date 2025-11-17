@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import AppButton from "./home/AppButton";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 // Logo Component
 function NusaKaryaLogo({ isDarkBg }: { isDarkBg?: boolean }) {
@@ -32,6 +32,8 @@ export function Header() {
   const [isAboutUs, setIsAboutUs] = useState(false);
   const [isPassHero, setPassHero] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+  const isBaseRoute = pathname === "/";
   useEffect(() => {
     const handleScroll = () => {
       const section = document.getElementById("kenapa-nusakarya");
@@ -74,7 +76,8 @@ export function Header() {
             y: 0,
             transition: { duration: 0.3, delay: 0.2 },
           }}
-          className="flex items-center gap-1 max-w-[108px] max-h-[30px]"
+          className="flex items-center gap-1 max-w-[108px] max-h-[30px] cursor-pointer"
+          onClick={() => router.push("/")}
         >
           <NusaKaryaLogo isDarkBg={isAboutUs} />
         </motion.div>
@@ -92,14 +95,14 @@ export function Header() {
               transition: { type: "spring", stiffness: 300 },
             }}
             onClick={() => router.push("/verify")}
-            className={`flex gap-2.5 items-center font-OnestMedium text-sm outline-none group border py-2 px-4 rounded-full transition-colors ${isAboutUs
+            className={`flex gap-2.5 items-center font-OnestMedium text-sm outline-none group border py-2 px-4 rounded-full transition-colors cursor-pointer ${isAboutUs
                 ? "border-[var(--color-ivory-white)]/40 bg-[var(--color-ivory-white)]/20 text-[var(--color-ivory-white)] hover:border-[var(--color-karya-gold)] hover:bg-[var(--color-karya-gold)]/20 hover:text-[var(--color-karya-gold)]"
                 : "border-[var(--color-nusa-blue)]/20 bg-[var(--color-ivory-white)]/50 text-[var(--color-nusa-blue)] hover:border-[var(--color-karya-gold)] hover:bg-[var(--color-karya-gold)]/10 hover:text-[var(--color-karya-gold)]"
               }`}
           >
             Verifikasi Karya
           </motion.button>
-          {isPassHero && (
+          {((isBaseRoute && isPassHero) || !isBaseRoute) && (
             <div>
               <AppButton
                 className="h-[38px] text-sm min-w-[64px] px-4"

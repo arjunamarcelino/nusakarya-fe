@@ -1,12 +1,12 @@
 export function VisionMission() {
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-800">
+    <section className="py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       <div className="container mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-[var(--color-foreground)] mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-l from-[var(--color-nusa-blue)] to-[var(--color-deep-navy)] bg-clip-text text-transparent mb-4">
             Visi & Misi Kami
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          <p className="text-lg text-[var(--color-slate-gray)] max-w-2xl mx-auto">
             Membangun ekosistem yang adil dan transparan untuk melindungi hak kekayaan intelektual kreator Indonesia
           </p>
         </div>
@@ -21,9 +21,9 @@ export function VisionMission() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-[var(--color-foreground)]">Visi</h3>
+              <h3 className="text-2xl font-bold bg-gradient-to-l from-[var(--color-nusa-blue)] to-[var(--color-deep-navy)] bg-clip-text text-transparent">Visi</h3>
             </div>
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+            <p className="text-[var(--color-slate-gray)] leading-relaxed">
               Menjadi platform terdepan di Indonesia yang melindungi dan memberdayakan kreator melalui teknologi blockchain, 
               menciptakan ekosistem yang adil, transparan, dan berkelanjutan untuk semua jenis karya kreatif.
             </p>
@@ -37,9 +37,9 @@ export function VisionMission() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-[var(--color-foreground)]">Misi</h3>
+              <h3 className="text-2xl font-bold bg-gradient-to-l from-[var(--color-nusa-blue)] to-[var(--color-deep-navy)] bg-clip-text text-transparent">Misi</h3>
             </div>
-            <ul className="text-gray-700 dark:text-gray-300 space-y-3">
+            <ul className="text-[var(--color-slate-gray)] space-y-3">
               <li className="flex items-start">
                 <span className="w-2 h-2 bg-[var(--color-karya-gold)] rounded-full mt-2 mr-3 flex-shrink-0"></span>
                 Memberikan perlindungan hak kekayaan intelektual yang aman dan permanen melalui teknologi blockchain

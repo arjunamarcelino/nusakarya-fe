@@ -10,11 +10,12 @@ interface TransactionHistoryProps {
 }
 
 export function TransactionHistory({ transactions, isLoading = false }: TransactionHistoryProps) {
-  const [filterType, setFilterType] = useState<string>("all");
   const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
 
-  const filteredTransactions = transactions
-    .filter(tx => filterType === "all" || tx.type === filterType)
+  // Filter to only show purchase transactions for buyer/user side
+  const purchaseTransactions = transactions.filter(tx => tx.type === 'purchase');
+  
+  const filteredTransactions = purchaseTransactions
     .sort((a, b) => {
       if (sortBy === 'newest') {
         return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
@@ -71,12 +72,8 @@ export function TransactionHistory({ transactions, isLoading = false }: Transact
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
-  const totalEarnings = transactions
-    .filter(tx => tx.type === 'purchase' && tx.status === 'confirmed')
-    .reduce((sum, tx) => sum + tx.amount, 0);
-
-  const totalRoyalties = transactions
-    .filter(tx => tx.type === 'royalty' && tx.status === 'confirmed')
+  const totalEarnings = purchaseTransactions
+    .filter(tx => tx.status === 'confirmed')
     .reduce((sum, tx) => sum + tx.amount, 0);
 
   if (isLoading) {
@@ -99,74 +96,55 @@ export function TransactionHistory({ transactions, isLoading = false }: Transact
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-xl font-semibold text-[var(--color-deep-navy)]">
-            Riwayat Transaksi
+            Riwayat Pembelian
           </h3>
           <p className="text-[var(--color-slate-gray)] text-sm mt-1">
-            Catatan semua transaksi lisensi dan royalti
+            Catatan semua pembelian lisensi yang telah Anda lakukan
           </p>
         </div>
         <div className="text-sm text-[var(--color-slate-gray)]">
-          {filteredTransactions.length} transaksi
+          {filteredTransactions.length} pembelian
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      {/* Summary Card */}
+      <div className="mb-6">
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex items-center space-x-3">
             <div className="text-2xl">💰</div>
             <div>
-              <h4 className="font-semibold text-green-800">Total Penjualan</h4>
+              <h4 className="font-semibold text-green-800">Total Pembelian</h4>
               <p className="text-green-600 font-semibold">
                 {totalEarnings.toFixed(4)} ETH
               </p>
             </div>
           </div>
         </div>
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center space-x-3">
-            <div className="text-2xl">🎯</div>
-            <div>
-              <h4 className="font-semibold text-blue-800">Total Royalti</h4>
-              <p className="text-blue-600 font-semibold">
-                {totalRoyalties.toFixed(4)} ETH
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
 
-      {/* Filters */}
+      {/* Sort */}
       <div className="flex flex-wrap gap-4 mb-6">
         <div className="flex space-x-2">
-          <PrimaryButton
-            onClick={() => setFilterType("all")}
-          >
-            Semua
-          </PrimaryButton>
-          <PrimaryButton
-            onClick={() => setFilterType("purchase")}
-          >
-            🛒 Pembelian
-          </PrimaryButton>
-          <PrimaryButton
-            onClick={() => setFilterType("royalty")}
-          >
-            💰 Royalti
-          </PrimaryButton>
-        </div>
-        
-        <div className="flex space-x-2">
-          <PrimaryButton
+          <button
             onClick={() => setSortBy("newest")}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              sortBy === 'newest'
+                ? 'bg-[var(--color-nusa-blue)] text-white'
+                : 'text-[var(--color-slate-gray)] border border-gray-300 hover:border-[var(--color-nusa-blue)] hover:text-[var(--color-nusa-blue)] hover:bg-[var(--color-nusa-blue)]/10'
+            }`}
           >
             Terbaru
-          </PrimaryButton>
-          <PrimaryButton
+          </button>
+          <button
             onClick={() => setSortBy("oldest")}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              sortBy === 'oldest'
+                ? 'bg-[var(--color-nusa-blue)] text-white'
+                : 'text-[var(--color-slate-gray)] border border-gray-300 hover:border-[var(--color-nusa-blue)] hover:text-[var(--color-nusa-blue)] hover:bg-[var(--color-nusa-blue)]/10'
+            }`}
           >
             Terlama
-          </PrimaryButton>
+          </button>
         </div>
       </div>
 
@@ -175,10 +153,10 @@ export function TransactionHistory({ transactions, isLoading = false }: Transact
         <div className="text-center py-12">
           <div className="text-6xl mb-4">📊</div>
           <h4 className="text-lg font-semibold text-[var(--color-deep-navy)] mb-2">
-            Belum Ada Transaksi
+            Belum Ada Pembelian
           </h4>
           <p className="text-[var(--color-slate-gray)]">
-            Transaksi lisensi dan royalti akan muncul di sini
+            Riwayat pembelian lisensi akan muncul di sini setelah Anda membeli lisensi
           </p>
         </div>
       ) : (

@@ -143,10 +143,11 @@ export function MintCertificate({ onMint, isMinting, canMint, file, metadata }: 
           onClick={onMint}
           disabled={!canMint || isMinting}
           className="w-full"
+          textClassName="justify-center"
         >
           {isMinting ? (
             <div className="flex items-center justify-center space-x-2">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--color-deep-navy)]"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
               <span>Minting NFT Certificate...</span>
             </div>
           ) : (
@@ -154,12 +155,12 @@ export function MintCertificate({ onMint, isMinting, canMint, file, metadata }: 
           )}
         </PrimaryButton>
 
-        <PrimaryButton
+        <button
           onClick={() => setShowDetails(!showDetails)}
-          className="w-full text-center text-sm text-[var(--color-nusa-blue)] hover:text-[var(--color-deep-navy)] transition-colors duration-200"
+          className="border border-gray-300 rounded-lg w-full text-center text-sm text-[var(--color-nusa-blue)] hover:text-[var(--color-deep-navy)] transition-colors duration-200 py-2"
         >
           {showDetails ? "Sembunyikan" : "Tampilkan"} detail teknis
-        </PrimaryButton>
+        </button>
         {showDetails && (
           <div className="bg-gray-50 rounded-lg p-4 text-sm">
             <h5 className="font-semibold text-[var(--color-deep-navy)] mb-2">

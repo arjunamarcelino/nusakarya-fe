@@ -76,13 +76,13 @@ export function Contact() {
   ];
 
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
+    <section className="py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       <div className="container mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-[var(--color-foreground)] mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-l from-[var(--color-nusa-blue)] to-[var(--color-deep-navy)] bg-clip-text text-transparent mb-4">
             Hubungi Kami
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          <p className="text-lg text-[var(--color-slate-gray)] max-w-2xl mx-auto">
             Ada pertanyaan atau butuh bantuan? Tim kami siap membantu Anda 24/7
           </p>
         </div>
@@ -90,7 +90,7 @@ export function Contact() {
         <div className="grid lg:grid-cols-2 gap-12 max-w-7xl mx-auto">
           {/* Contact Information */}
           <div>
-            <h3 className="text-2xl font-bold text-[var(--color-foreground)] mb-8">
+            <h3 className="text-2xl font-bold bg-gradient-to-l from-[var(--color-nusa-blue)] to-[var(--color-deep-navy)] bg-clip-text text-transparent mb-8">
               Informasi Kontak
             </h3>
             <div className="space-y-6">
@@ -100,57 +100,33 @@ export function Contact() {
                     {info.icon}
                   </div>
                   <div>
-                    <h4 className="text-lg font-semibold text-[var(--color-foreground)] mb-2">
+                    <h4 className="text-lg font-semibold bg-gradient-to-l from-[var(--color-nusa-blue)] to-[var(--color-deep-navy)] bg-clip-text text-transparent mb-2">
                       {info.title}
                     </h4>
                     <div className="space-y-1 mb-2">
                       {info.details.map((detail, idx) => (
-                        <p key={idx} className="text-gray-600 dark:text-gray-300">
+                        <p key={idx} className="text-[var(--color-slate-gray)]">
                           {detail}
                         </p>
                       ))}
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-[var(--color-slate-gray)]/70">
                       {info.description}
                     </p>
                   </div>
                 </div>
               ))}
             </div>
-
-            {/* Social Media */}
-            <div className="mt-12">
-              <h4 className="text-lg font-semibold text-[var(--color-foreground)] mb-4">
-                Ikuti Kami
-              </h4>
-              <div className="flex space-x-4">
-                {[
-                  { name: "Twitter", icon: "𝕏", url: "#" },
-                  { name: "LinkedIn", icon: "in", url: "#" },
-                  { name: "Instagram", icon: "📷", url: "#" },
-                  { name: "Discord", icon: "💬", url: "#" }
-                ].map((social, index) => (
-                  <a
-                    key={index}
-                    href={social.url}
-                    className="w-10 h-10 bg-gradient-to-r from-[var(--color-nusa-blue)] to-[var(--color-karya-gold)] rounded-lg flex items-center justify-center text-white hover:opacity-80 transition-opacity"
-                    aria-label={social.name}
-                  >
-                    <span className="text-sm font-bold">{social.icon}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Contact Form */}
           <div>
-            <h3 className="text-2xl font-bold text-[var(--color-foreground)] mb-8">
+            <h3 className="text-2xl font-bold bg-gradient-to-l from-[var(--color-nusa-blue)] to-[var(--color-deep-navy)] bg-clip-text text-transparent mb-8">
               Kirim Pesan
             </h3>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-[var(--color-foreground)] mb-2">
+                <label htmlFor="name" className="block text-sm font-medium text-[var(--color-slate-gray)] mb-2">
                   Nama Lengkap
                 </label>
                 <input
@@ -160,7 +136,7 @@ export function Contact() {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent bg-white dark:bg-gray-800 text-[var(--color-foreground)]"
+                  className="w-full px-4 py-3 border border-[var(--color-nusa-blue)]/30 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent bg-[var(--color-deep-navy)] text-[var(--color-foreground)]"
                   placeholder="Masukkan nama lengkap Anda"
                 />
               </div>
@@ -176,7 +152,7 @@ export function Contact() {
                   value={formData.email}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent bg-white dark:bg-gray-800 text-[var(--color-foreground)]"
+                  className="w-full px-4 py-3 border border-[var(--color-nusa-blue)]/30 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent bg-[var(--color-deep-navy)] text-[var(--color-foreground)]"
                   placeholder="contoh@email.com"
                 />
               </div>
@@ -192,7 +168,7 @@ export function Contact() {
                   value={formData.subject}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent bg-white dark:bg-gray-800 text-[var(--color-foreground)]"
+                  className="w-full px-4 py-3 border border-[var(--color-nusa-blue)]/30 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent bg-[var(--color-deep-navy)] text-[var(--color-foreground)]"
                   placeholder="Apa yang ingin Anda tanyakan?"
                 />
               </div>
@@ -208,7 +184,7 @@ export function Contact() {
                   onChange={handleInputChange}
                   required
                   rows={5}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent bg-white dark:bg-gray-800 text-[var(--color-foreground)] resize-none"
+                  className="w-full px-4 py-3 border border-[var(--color-nusa-blue)]/30 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent bg-[var(--color-deep-navy)] text-[var(--color-foreground)] resize-none"
                   placeholder="Tuliskan pesan Anda di sini..."
                 />
               </div>

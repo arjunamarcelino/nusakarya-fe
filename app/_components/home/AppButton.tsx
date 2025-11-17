@@ -1,7 +1,6 @@
-import { APP } from "../../_constants/config";
-
 import { cn } from "../../_libs/utils";
 import { PrimaryButton } from "../ui/Button";
+import { useRouter } from "next/navigation";
 
 export default function AppButton({
   className,
@@ -9,8 +8,9 @@ export default function AppButton({
   className?: string;
 }) {
 
+  const router = useRouter();
   const handleClick = () => {
-    window.open(APP, '_blank');
+    router.push("/app");
   };
 
   return (

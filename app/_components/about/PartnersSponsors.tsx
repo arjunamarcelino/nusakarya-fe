@@ -42,15 +42,15 @@ export function PartnersSponsors() {
   ];
 
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-800">
+    <section className="py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       <div className="container mx-auto">
         {/* Partners Section */}
         <div className="mb-20">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-[var(--color-foreground)] mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-l from-[var(--color-nusa-blue)] to-[var(--color-deep-navy)] bg-clip-text text-transparent mb-4">
               Mitra & Partner
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            <p className="text-lg text-[var(--color-slate-gray)] max-w-2xl mx-auto">
               Kolaborasi strategis dengan berbagai organisasi untuk membangun ekosistem yang kuat
             </p>
           </div>
@@ -59,7 +59,7 @@ export function PartnersSponsors() {
             {partners.map((partner, index) => (
               <div
                 key={index}
-                className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-6 hover:shadow-lg transition-shadow duration-300"
+                className="bg-[var(--color-deep-navy)] rounded-2xl p-6 border border-[var(--color-nusa-blue)]/20 hover:border-[var(--color-nusa-blue)]/40 transition-all duration-300"
               >
                 <div className="text-center">
                   <div className="w-20 h-20 bg-gradient-to-r from-[var(--color-nusa-blue)] to-[var(--color-karya-gold)] rounded-xl mx-auto mb-4 flex items-center justify-center">
@@ -67,13 +67,13 @@ export function PartnersSponsors() {
                       {partner.name.split(' ').slice(0, 2).map(n => n[0]).join('')}
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-[var(--color-foreground)] mb-2">
+                  <h3 className="text-lg font-bold bg-gradient-to-l from-[var(--color-nusa-blue)] to-[var(--color-deep-navy)] bg-clip-text text-transparent mb-2">
                     {partner.name}
                   </h3>
                   <p className="text-[var(--color-nusa-blue)] font-semibold text-sm mb-3">
                     {partner.type}
                   </p>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                  <p className="text-[var(--color-slate-gray)] text-sm leading-relaxed">
                     {partner.description}
                   </p>
                 </div>
@@ -85,10 +85,10 @@ export function PartnersSponsors() {
         {/* Sponsors Section */}
         <div>
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-[var(--color-foreground)] mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-l from-[var(--color-nusa-blue)] to-[var(--color-deep-navy)] bg-clip-text text-transparent mb-4">
               Sponsor & Pendukung
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            <p className="text-lg text-[var(--color-slate-gray)] max-w-2xl mx-auto">
               Organisasi yang mendukung visi dan misi NusaKarya dalam melindungi karya kreatif Indonesia
             </p>
           </div>
@@ -105,13 +105,13 @@ export function PartnersSponsors() {
                       {sponsor.name.split(' ').slice(0, 2).map(n => n[0]).join('')}
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-[var(--color-foreground)] mb-2">
+                  <h3 className="text-lg font-bold bg-gradient-to-l from-[var(--color-nusa-blue)] to-[var(--color-deep-navy)] bg-clip-text text-transparent mb-2">
                     {sponsor.name}
                   </h3>
                   <p className="text-[var(--color-karya-gold)] font-semibold text-sm mb-3">
                     {sponsor.type}
                   </p>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                  <p className="text-[var(--color-slate-gray)] text-sm leading-relaxed">
                     {sponsor.description}
                   </p>
                 </div>

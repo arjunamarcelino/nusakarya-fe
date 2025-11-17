@@ -1,34 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { WorkList } from "./WorkList";
-import { LicenseForm } from "./LicenseForm";
-import { LicensePreview } from "./LicensePreview";
 import { TransactionHistory } from "./TransactionHistory";
-import { DigitalWork, License, LicenseFormData, LicenseTransaction } from "./types";
+import { DigitalWork, License, LicenseTransaction } from "./types";
 import Image from "next/image";
 
-type ViewMode = 'works' | 'create' | 'preview' | 'transactions' | 'marketplace';
+type ViewMode = 'marketplace' | 'transactions' | 'my-licenses';
 
 /**
- * Halaman Lisensi Digital - Marketplace & License Management
+ * Halaman Lisensi Digital - Buyer Marketplace
  * 
- * Purpose: Public marketplace for license browsing and private license creation
- * Access: Public (marketplace) + Authenticated creators (license management)
- * Focus: License marketplace, creation, publishing, and transaction history
+ * Purpose: Marketplace for buyers to browse, purchase, and manage licenses
+ * Access: Authenticated users (buyers)
+ * Focus: License browsing, purchasing, usage history, and transaction history
  * Analogy: "Toko karya" - public storefront for digital licenses
  * 
  * Features:
- * - Marketplace: Browse and purchase licenses from all creators (public)
- * - Etalase Saya: Create and manage licenses for own works (authenticated)
- * - Transactions: View license purchase and sales history
- * - License Creation: Configure and publish new licenses
+ * - Marketplace: Browse and search available licenses from all creators
+ * - My Licenses: View purchased licenses and usage history
+ * - Transactions: View purchase and transaction history
  */
 export function LicensePage() {
   const [currentView, setCurrentView] = useState<ViewMode>('marketplace');
-  const [selectedWork, setSelectedWork] = useState<DigitalWork | null>(null);
-  const [licenseFormData, setLicenseFormData] = useState<LicenseFormData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   
   // Mock data - in real app, this would come from API/blockchain
   const [works] = useState<DigitalWork[]>([
@@ -80,6 +73,7 @@ export function LicensePage() {
     }
   ]);
 
+  // Only purchase transactions for buyer/user side
   const [transactions] = useState<LicenseTransaction[]>([
     {
       id: 'tx1',
@@ -96,97 +90,46 @@ export function LicensePage() {
     },
     {
       id: 'tx2',
-      type: 'royalty',
-      licenseId: 'lic1',
+      type: 'purchase',
+      licenseId: 'lic2',
       fromAddress: '0x1234567890abcdef1234567890abcdef12345678',
-      toAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
-      amount: 0.005,
+      toAddress: '0xbcdefg1234567890bcdefg1234567890bcdefg12',
+      amount: 0.08,
       currency: 'ETH',
       transactionHash: '0xbcdefg1234567890bcdefg1234567890bcdefg1234567890bcdefg1234567890',
       blockNumber: 45234568,
-      timestamp: '2024-01-28T16:35:00Z',
+      timestamp: '2024-01-25T14:20:00Z',
       status: 'confirmed'
     }
   ]);
 
-  const handleWorkSelect = (work: DigitalWork) => {
-    setSelectedWork(work);
-  };
-
-  const handleCreateLicense = (work: DigitalWork) => {
-    setSelectedWork(work);
-    setCurrentView('create');
-  };
-
-  const handleLicenseFormSubmit = (formData: LicenseFormData) => {
-    setLicenseFormData(formData);
-    setCurrentView('preview');
-  };
-
-  const handleLicensePublish = async () => {
-    if (!licenseFormData || !selectedWork) return;
-
-    setIsLoading(true);
-    try {
-      // Simulate API call to create license
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Mock license creation
-      const newLicense: License = {
-        id: Math.random().toString(36).substr(2, 9),
-        workId: selectedWork.id,
-        licenseType: licenseFormData.licenseType,
-        price: licenseFormData.price,
-        priceUnit: licenseFormData.priceUnit,
-        duration: licenseFormData.duration,
-        durationUnit: licenseFormData.durationUnit,
-        description: licenseFormData.description,
-        terms: licenseFormData.terms,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        contractAddress: '0x' + Math.random().toString(16).substr(2, 40)
-      };
-
-      console.log('License created:', newLicense);
-      
-      // Reset form and go back to works view
-      setLicenseFormData(null);
-      setSelectedWork(null);
-      setCurrentView('works');
-      
-      // Show success message (you could add a toast notification here)
-      alert('Lisensi berhasil dipublikasikan!');
-      
-    } catch (error) {
-      console.error('Failed to create license:', error);
-      alert('Gagal membuat lisensi. Silakan coba lagi.');
-    } finally {
-      setIsLoading(false);
+  // Mock purchased licenses - in real app, this would come from API/blockchain
+  const [purchasedLicenses] = useState<License[]>([
+    {
+      id: 'lic1',
+      workId: '1',
+      licenseType: 'commercial',
+      price: 0.05,
+      priceUnit: 'ETH',
+      duration: 6,
+      durationUnit: 'months',
+      description: 'Lisensi komersial untuk penggunaan dalam proyek komersial',
+      terms: 'Dapat digunakan untuk tujuan komersial selama 6 bulan',
+      isActive: true,
+      createdAt: '2024-01-28T16:30:00Z',
+      contractAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
+      tokenId: '123'
     }
-  };
-
-  const handleBackToWorks = () => {
-    setSelectedWork(null);
-    setLicenseFormData(null);
-    setCurrentView('works');
-  };
-
-  const handleEditLicense = () => {
-    setCurrentView('create');
-  };
+  ]);
 
   const getViewTitle = () => {
     switch (currentView) {
-      case 'works':
-        return 'Etalase Lisensi Digital';
-      case 'create':
-        return 'Buat Lisensi';
-      case 'preview':
-        return 'Preview Lisensi';
-      case 'transactions':
-        return 'Riwayat Transaksi';
       case 'marketplace':
         return 'Marketplace Lisensi';
+      case 'my-licenses':
+        return 'Lisensi Saya';
+      case 'transactions':
+        return 'Riwayat Pembelian';
       default:
         return 'Lisensi Digital';
     }
@@ -194,18 +137,14 @@ export function LicensePage() {
 
   const getViewDescription = () => {
     switch (currentView) {
-      case 'works':
-        return 'Jelajahi karya digital dan buat lisensi untuk dijual';
-      case 'create':
-        return 'Konfigurasi lisensi untuk karya yang dipilih';
-      case 'preview':
-        return 'Review lisensi sebelum dipublikasikan';
-      case 'transactions':
-        return 'Lihat semua transaksi lisensi dan royalti';
       case 'marketplace':
         return 'Jelajahi dan beli lisensi karya digital dari kreator terbaik';
+      case 'my-licenses':
+        return 'Lihat lisensi yang telah Anda beli dan riwayat penggunaannya';
+      case 'transactions':
+        return 'Lihat riwayat pembelian lisensi yang telah Anda lakukan';
       default:
-        return 'Marketplace lisensi digital untuk kreator dan pembeli';
+        return 'Marketplace lisensi digital untuk pembeli';
     }
   };
 
@@ -234,17 +173,17 @@ export function LicensePage() {
                     : 'text-[var(--color-slate-gray)] hover:text-[var(--color-nusa-blue)] hover:bg-[var(--color-nusa-blue)]/10'
                 }`}
               >
-                🛒 Beli Lisensi
+                🛒 Marketplace
               </button>
               <button
-                onClick={() => setCurrentView('works')}
+                onClick={() => setCurrentView('my-licenses')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  currentView === 'works'
+                  currentView === 'my-licenses'
                     ? 'bg-[var(--color-nusa-blue)] text-white'
                     : 'text-[var(--color-slate-gray)] hover:text-[var(--color-nusa-blue)] hover:bg-[var(--color-nusa-blue)]/10'
                 }`}
               >
-                🏪 Etalase Saya
+                📜 Lisensi Saya
               </button>
               <button
                 onClick={() => setCurrentView('transactions')}
@@ -280,9 +219,9 @@ export function LicensePage() {
                   <input
                     type="text"
                     placeholder="Cari karya atau kreator..."
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent text-[var(--color-deep-navy)] placeholder:text-gray-400 bg-white"
                   />
-                  <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent">
+                  <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent text-[var(--color-deep-navy)] bg-white">
                     <option value="">Semua Kategori</option>
                     <option value="digital-art">Digital Art</option>
                     <option value="music">Music</option>
@@ -331,7 +270,7 @@ export function LicensePage() {
                       <span className="text-xs text-[var(--color-slate-gray)]">
                         oleh {work.ownerAddress.slice(0, 6)}...{work.ownerAddress.slice(-4)}
                       </span>
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                      <span className="text-xs bg-[var(--color-nusa-blue)]/10 text-[var(--color-nusa-blue)] px-2 py-1 rounded">
                         {work.category}
                       </span>
                     </div>
@@ -357,7 +296,7 @@ export function LicensePage() {
                 Daftarkan karya digital Anda dan mulai menjual lisensi
               </p>
               <button
-                onClick={() => window.location.href = '/register'}
+                onClick={() => window.location.href = '/app/register'}
                 className="px-6 py-3 bg-white text-[var(--color-deep-navy)] rounded-lg font-semibold hover:bg-opacity-90 transition-colors"
               >
                 🏆 Daftarkan Karya
@@ -366,41 +305,86 @@ export function LicensePage() {
           </div>
         )}
 
-        {currentView === 'works' && (
-          <WorkList
-            works={works}
-            selectedWork={selectedWork}
-            onWorkSelect={handleWorkSelect}
-            onCreateLicense={handleCreateLicense}
-          />
-        )}
-
-        {currentView === 'create' && selectedWork && (
-          <div className="max-w-2xl mx-auto">
-            <LicenseForm
-              work={selectedWork}
-              onSubmit={handleLicenseFormSubmit}
-              onCancel={handleBackToWorks}
-              isLoading={isLoading}
-            />
-          </div>
-        )}
-
-        {currentView === 'preview' && selectedWork && licenseFormData && (
-          <div className="max-w-2xl mx-auto">
-            <LicensePreview
-              work={selectedWork}
-              formData={licenseFormData}
-              onPublish={handleLicensePublish}
-              onEdit={handleEditLicense}
-              isLoading={isLoading}
-            />
+        {currentView === 'my-licenses' && (
+          <div className="space-y-6">
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-[var(--color-deep-navy)] mb-4">
+                Lisensi yang Telah Dibeli
+              </h3>
+              {purchasedLicenses.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">📜</div>
+                  <h4 className="text-lg font-semibold text-[var(--color-deep-navy)] mb-2">
+                    Belum Ada Lisensi
+                  </h4>
+                  <p className="text-[var(--color-slate-gray)] mb-6">
+                    Beli lisensi dari marketplace untuk mulai menggunakan karya digital
+                  </p>
+                  <button
+                    onClick={() => setCurrentView('marketplace')}
+                    className="px-6 py-3 bg-[var(--color-nusa-blue)] text-white rounded-lg font-semibold hover:opacity-90 transition-colors"
+                  >
+                    Jelajahi Marketplace
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {purchasedLicenses.map((license) => {
+                    const work = works.find(w => w.id === license.workId);
+                    return (
+                      <div key={license.id} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-[var(--color-deep-navy)] mb-2">
+                              {work?.title || 'Unknown Work'}
+                            </h4>
+                            <p className="text-sm text-[var(--color-slate-gray)] mb-3">
+                              {license.description}
+                            </p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <span className="text-[var(--color-slate-gray)]">Jenis:</span>
+                                <p className="font-medium text-[var(--color-deep-navy)]">
+                                  {license.licenseType === 'commercial' ? 'Komersial' : 
+                                   license.licenseType === 'non-commercial' ? 'Non-Komersial' : 
+                                   'Event-based'}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-[var(--color-slate-gray)]">Durasi:</span>
+                                <p className="font-medium text-[var(--color-deep-navy)]">
+                                  {license.duration} {license.durationUnit === 'days' ? 'Hari' : 
+                                                      license.durationUnit === 'months' ? 'Bulan' : 
+                                                      'Tahun'}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-[var(--color-slate-gray)]">Harga:</span>
+                                <p className="font-medium text-[var(--color-deep-navy)]">
+                                  {license.price} {license.priceUnit}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-[var(--color-slate-gray)]">Status:</span>
+                                <p className="font-medium text-green-600">
+                                  {license.isActive ? 'Aktif' : 'Tidak Aktif'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
         {currentView === 'transactions' && (
           <TransactionHistory
-            transactions={transactions}
+            transactions={transactions.filter(tx => tx.type === 'purchase')}
             isLoading={false}
           />
         )}

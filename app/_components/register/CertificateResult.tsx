@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { PrimaryButton } from "../ui/Button";
 
 interface CertificateResultProps {
@@ -18,7 +19,12 @@ interface CertificateResultProps {
 }
 
 export function CertificateResult({ certificate, onMintAnother }: CertificateResultProps) {
+  const router = useRouter();
   const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const handleClose = () => {
+    router.push("/app/dashboard");
+  };
 
   const copyToClipboard = async (text: string, field: string) => {
     try {
@@ -41,22 +47,40 @@ export function CertificateResult({ certificate, onMintAnother }: CertificateRes
   };
 
   const CopyButton = ({ text, field }: { text: string; field: string }) => (
-    <PrimaryButton
+    <button
       onClick={() => copyToClipboard(text, field)}
-      className="px-2"
+      className="px-3 py-2 border border-gray-300 rounded-lg hover:border-[var(--color-nusa-blue)] hover:bg-[var(--color-nusa-blue)]/5 transition-all duration-200"
     >
       {copiedField === field ? '✅' : '📋'}
-    </PrimaryButton>
+    </button>
   );
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6">
+      {/* Header with Close Button */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-[var(--color-deep-navy)]">
+          Sertifikat NFT Berhasil Dibuat!
+        </h2>
+        <button
+          onClick={handleClose}
+          className="flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 hover:border-[var(--color-nusa-blue)] hover:bg-[var(--color-nusa-blue)]/5 transition-all duration-200 group"
+          aria-label="Tutup dan kembali ke dashboard"
+        >
+          <svg 
+            className="w-5 h-5 text-gray-600 group-hover:text-[var(--color-nusa-blue)] transition-colors" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
       {/* Success Header */}
       <div className="text-center mb-8">
         <div className="text-6xl mb-4">🎉</div>
-        <h2 className="text-2xl font-bold text-[var(--color-deep-navy)] mb-2">
-          Sertifikat NFT Berhasil Dibuat!
-        </h2>
         <p className="text-[var(--color-slate-gray)]">
           Karya digitalmu telah terdaftar dan dilindungi dengan teknologi blockchain
         </p>
@@ -176,6 +200,7 @@ export function CertificateResult({ certificate, onMintAnother }: CertificateRes
         <PrimaryButton
           onClick={() => window.open(certificate.ipfsUrl, '_blank')}
           className="flex-1"
+          textClassName="justify-center"
         >
           🔗 Lihat File di IPFS
         </PrimaryButton>
@@ -183,6 +208,7 @@ export function CertificateResult({ certificate, onMintAnother }: CertificateRes
         <PrimaryButton
           onClick={() => window.open(`https://polygonscan.com/tx/${certificate.transactionHash}`, '_blank')}
           className="flex-1"
+          textClassName="justify-center"
         >
           🔍 Lihat di Explorer
         </PrimaryButton>
@@ -190,6 +216,7 @@ export function CertificateResult({ certificate, onMintAnother }: CertificateRes
         <PrimaryButton
           onClick={onMintAnother}
           className="flex-1"
+          textClassName="justify-center"
         >
           🏆 Daftarkan Karya Lain
         </PrimaryButton>

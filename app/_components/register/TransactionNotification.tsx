@@ -157,7 +157,8 @@ export function TransactionNotification({ transaction, onClose }: TransactionNot
         <div className="flex space-x-3">
           <PrimaryButton
             onClick={() => window.open(`https://polygonscan.com/tx/${transaction.hash}`, '_blank')}
-            className="flex-1"
+            className="flex-1 text-sm"
+            textClassName="justify-center"
           >
             🔍 View on Explorer
           </PrimaryButton>
@@ -165,7 +166,8 @@ export function TransactionNotification({ transaction, onClose }: TransactionNot
           {transaction.status === 'success' && (
             <PrimaryButton
               onClick={onClose}
-              className="flex-1 bg-[var(--color-nusa-blue)] hover:bg-[var(--color-deep-navy)]"
+              className="flex-1 bg-[var(--color-nusa-blue)] hover:bg-[var(--color-deep-navy)] text-sm"
+              textClassName="justify-center"
             >
               Lihat Sertifikat
             </PrimaryButton>
@@ -175,6 +177,7 @@ export function TransactionNotification({ transaction, onClose }: TransactionNot
             <PrimaryButton
               onClick={onClose}
               className="flex-1"
+              textClassName="justify-center text-sm"
             >
               Tutup
             </PrimaryButton>

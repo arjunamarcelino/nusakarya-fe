@@ -102,7 +102,7 @@ export function LicenseForm({ work, onSubmit, onCancel, isLoading = false }: Lic
                 />
                 <div className="flex items-center space-x-2">
                   <span className="text-lg">{type.icon}</span>
-                  <span className="font-medium">{type.label}</span>
+                  <span className="font-medium text-[var(--color-deep-navy)]">{type.label}</span>
                 </div>
               </label>
             ))}
@@ -125,7 +125,7 @@ export function LicenseForm({ work, onSubmit, onCancel, isLoading = false }: Lic
                 step="0.001"
                 value={formData.price}
                 onChange={(e) => handleInputChange('price', parseFloat(e.target.value) || 0)}
-                className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent ${
+                className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent text-[var(--color-deep-navy)] placeholder:text-gray-400 bg-white ${
                   errors.price ? 'border-red-500' : 'border-gray-300'
                 }`}
                 placeholder="0.001"
@@ -133,7 +133,7 @@ export function LicenseForm({ work, onSubmit, onCancel, isLoading = false }: Lic
               <select
                 value={formData.priceUnit}
                 onChange={(e) => handleInputChange('priceUnit', e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent text-[var(--color-deep-navy)] bg-white"
               >
                 <option value="ETH">ETH</option>
                 <option value="USDC">USDC</option>
@@ -155,12 +155,12 @@ export function LicenseForm({ work, onSubmit, onCancel, isLoading = false }: Lic
                 min="1"
                 value={formData.duration}
                 onChange={(e) => handleInputChange('duration', parseInt(e.target.value) || 1)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent text-[var(--color-deep-navy)] placeholder:text-gray-400 bg-white"
               />
               <select
                 value={formData.durationUnit}
                 onChange={(e) => handleInputChange('durationUnit', e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent text-[var(--color-deep-navy)] bg-white"
               >
                 <option value="days">Hari</option>
                 <option value="months">Bulan</option>
@@ -179,7 +179,7 @@ export function LicenseForm({ work, onSubmit, onCancel, isLoading = false }: Lic
             value={formData.description}
             onChange={(e) => handleInputChange('description', e.target.value)}
             rows={3}
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent ${
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent text-[var(--color-deep-navy)] placeholder:text-gray-400 bg-white resize-none ${
               errors.description ? 'border-red-500' : 'border-gray-300'
             }`}
             placeholder="Jelaskan apa yang boleh dan tidak boleh dilakukan dengan lisensi ini..."
@@ -201,7 +201,7 @@ export function LicenseForm({ work, onSubmit, onCancel, isLoading = false }: Lic
             value={formData.terms}
             onChange={(e) => handleInputChange('terms', e.target.value)}
             rows={4}
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent ${
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent text-[var(--color-deep-navy)] placeholder:text-gray-400 bg-white resize-none ${
               errors.terms ? 'border-red-500' : 'border-gray-300'
             }`}
             placeholder="Tuliskan syarat dan ketentuan penggunaan lisensi ini..."
@@ -216,16 +216,17 @@ export function LicenseForm({ work, onSubmit, onCancel, isLoading = false }: Lic
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 pt-4">
-          <PrimaryButton
+          <button
             onClick={onCancel}
-            className="flex-1"
             disabled={isLoading}
+            className="flex-1 px-6 py-1 rounded-full font-semibold text-[var(--color-deep-navy)] border border-gray-300 hover:border-[var(--color-nusa-blue)] hover:bg-[var(--color-nusa-blue)]/5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Batal
-          </PrimaryButton>
+          </button>
           <PrimaryButton
             className="flex-1"
             disabled={isLoading}
+            textClassName="justify-center"
           >
             {isLoading ? '⏳ Membuat...' : '📜 Buat Lisensi'}
           </PrimaryButton>

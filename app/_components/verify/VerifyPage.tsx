@@ -4,6 +4,7 @@ import { useState } from "react";
 import { VerificationInput } from "../../_components/verify/VerificationInput";
 import { VerificationResult } from "../../_components/verify/VerificationResult";
 import { FileUpload } from "../../_components/verify/FileUpload";
+import { Header } from "../Header";
 
 interface WorkVerification {
   isVerified: boolean;
@@ -68,15 +69,16 @@ export function VerifyPage() {
 
   return (
     <div className="min-h-screen bg-[var(--color-ivory-white)]">
+      <Header />
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="pt-12 bg-white border-b border-[var(--color-nusa-blue)]/20">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-[var(--color-deep-navy)]">
                 Verifikasi Karya Digital
               </h1>
-              <p className="text-[var(--color-slate-gray)] mt-1">
+              <p className="text-[var(--color-deep-navy)]/70 mt-1">
                 Periksa apakah karya digital telah terdaftar dan dilindungi di blockchain
               </p>
             </div>
@@ -89,7 +91,7 @@ export function VerifyPage() {
         {!verificationResult ? (
           <div className="space-y-8">
             {/* Input Method Selection */}
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <div className="bg-white border border-[var(--color-nusa-blue)]/20 rounded-xl p-6">
               <h2 className="text-xl font-semibold text-[var(--color-deep-navy)] mb-4">
                 Pilih Metode Verifikasi
               </h2>
@@ -98,8 +100,8 @@ export function VerifyPage() {
                   onClick={() => setInputMethod('file')}
                   className={`px-6 py-3 rounded-lg border-2 transition-colors ${
                     inputMethod === 'file'
-                      ? 'border-[var(--color-primary-blue)] bg-[var(--color-primary-blue)]/10 text-[var(--color-primary-blue)]'
-                      : 'border-gray-300 text-gray-600 hover:border-gray-400'
+                      ? 'border-[var(--color-nusa-blue)] bg-[var(--color-nusa-blue)]/10 text-[var(--color-nusa-blue)]'
+                      : 'border-[var(--color-nusa-blue)]/30 text-[var(--color-deep-navy)]/70 hover:border-[var(--color-nusa-blue)]/50'
                   }`}
                 >
                   Upload File
@@ -108,8 +110,8 @@ export function VerifyPage() {
                   onClick={() => setInputMethod('hash')}
                   className={`px-6 py-3 rounded-lg border-2 transition-colors ${
                     inputMethod === 'hash'
-                      ? 'border-[var(--color-primary-blue)] bg-[var(--color-primary-blue)]/10 text-[var(--color-primary-blue)]'
-                      : 'border-gray-300 text-gray-600 hover:border-gray-400'
+                      ? 'border-[var(--color-nusa-blue)] bg-[var(--color-nusa-blue)]/10 text-[var(--color-nusa-blue)]'
+                      : 'border-[var(--color-nusa-blue)]/30 text-[var(--color-deep-navy)]/70 hover:border-[var(--color-nusa-blue)]/50'
                   }`}
                 >
                   Input Hash

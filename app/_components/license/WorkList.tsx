@@ -97,7 +97,7 @@ export function WorkList({ works, selectedWork, onWorkSelect, onCreateLicense }:
             Daftarkan karya digitalmu terlebih dahulu untuk membuat lisensi
           </p>
           <PrimaryButton
-            onClick={() => window.location.href = '/register'}
+            onClick={() => window.location.href = '/app/register'}
             className="bg-[var(--color-karya-gold)] hover:bg-[var(--color-karya-gold)]/90 text-[var(--color-deep-navy)] font-semibold"
           >
             🏆 Daftarkan Karya

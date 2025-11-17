@@ -103,7 +103,7 @@ export function MetadataForm({ onMetadataChange, metadata }: MetadataFormProps) 
           value={metadata.title}
           onChange={(e) => handleInputChange("title", e.target.value)}
           placeholder="Masukkan judul karya digitalmu"
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent transition-all duration-200"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent transition-all duration-200 text-[var(--color-deep-navy)] placeholder:text-gray-400 bg-white"
           required
         />
       </div>
@@ -118,7 +118,7 @@ export function MetadataForm({ onMetadataChange, metadata }: MetadataFormProps) 
           onChange={(e) => handleInputChange("description", e.target.value)}
           placeholder="Jelaskan karya digitalmu secara detail..."
           rows={4}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent transition-all duration-200 resize-none"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent transition-all duration-200 resize-none text-[var(--color-deep-navy)] placeholder:text-gray-400 bg-white"
           required
         />
       </div>
@@ -156,7 +156,7 @@ export function MetadataForm({ onMetadataChange, metadata }: MetadataFormProps) 
           <select
             value={metadata.category}
             onChange={(e) => handleCategoryChange(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent transition-all duration-200"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent transition-all duration-200 text-[var(--color-deep-navy)] bg-white"
           >
             <option value="">Pilih kategori</option>
             {categories[metadata.workType as keyof typeof categories]?.map((category) => (
@@ -180,7 +180,7 @@ export function MetadataForm({ onMetadataChange, metadata }: MetadataFormProps) 
             onChange={(e) => setTagInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Masukkan tag (tekan Enter untuk menambah)"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent transition-all duration-200"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-nusa-blue)] focus:border-transparent transition-all duration-200 text-[var(--color-deep-navy)] placeholder:text-gray-400 bg-white"
           />
           <button
             type="button"

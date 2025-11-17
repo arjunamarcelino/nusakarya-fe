@@ -44,12 +44,12 @@ export function VerificationResult({ result, onReset }: VerificationResultProps)
 
   if (!result.isVerified) {
     return (
-      <div className="bg-white border border-gray-200 rounded-xl p-8 text-center">
+      <div className="bg-white border border-[var(--color-nusa-blue)]/20 rounded-xl p-8 text-center">
         <div className="space-y-6">
           {/* Error Icon */}
-          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+          <div className="mx-auto w-16 h-16 bg-[var(--color-accent-red)]/10 rounded-full flex items-center justify-center">
             <svg
-              className="w-8 h-8 text-red-600"
+              className="w-8 h-8 text-[var(--color-accent-red)]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -65,10 +65,10 @@ export function VerificationResult({ result, onReset }: VerificationResultProps)
 
           {/* Error Message */}
           <div>
-            <h2 className="text-2xl font-bold text-red-600 mb-2">
+            <h2 className="text-2xl font-bold text-[var(--color-accent-red)] mb-2">
               ❌ Tidak Ditemukan
             </h2>
-            <p className="text-[var(--color-slate-gray)] text-lg">
+            <p className="text-[var(--color-deep-navy)]/70 text-lg">
               {result.error || "Karya tidak ditemukan dalam sistem blockchain"}
             </p>
           </div>
@@ -77,7 +77,7 @@ export function VerificationResult({ result, onReset }: VerificationResultProps)
           <div className="flex justify-center space-x-4">
             <button
               onClick={onReset}
-              className="bg-[var(--color-primary-blue)] text-white px-6 py-3 rounded-lg font-medium hover:bg-[var(--color-primary-blue)]/90 transition-colors"
+              className="bg-[var(--color-nusa-blue)] text-white px-6 py-3 rounded-lg font-medium hover:bg-[var(--color-nusa-blue)]/90 transition-colors"
             >
               Verifikasi Lainnya
             </button>
@@ -88,13 +88,13 @@ export function VerificationResult({ result, onReset }: VerificationResultProps)
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-8">
+    <div className="bg-white border border-[var(--color-nusa-blue)]/20 rounded-xl p-8">
       <div className="space-y-8">
         {/* Success Header */}
         <div className="text-center">
-          <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+          <div className="mx-auto w-16 h-16 bg-[var(--color-karya-gold)]/10 rounded-full flex items-center justify-center mb-4">
             <svg
-              className="w-8 h-8 text-green-600"
+              className="w-8 h-8 text-[var(--color-karya-gold)]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -107,10 +107,10 @@ export function VerificationResult({ result, onReset }: VerificationResultProps)
               />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-green-600 mb-2">
+          <h2 className="text-2xl font-bold text-[var(--color-karya-gold)] mb-2">
             ✅ Karya Terverifikasi
           </h2>
-          <p className="text-[var(--color-slate-gray)]">
+          <p className="text-[var(--color-deep-navy)]/70">
             Karya ini telah terdaftar dan dilindungi di blockchain
           </p>
         </div>
@@ -118,27 +118,27 @@ export function VerificationResult({ result, onReset }: VerificationResultProps)
         {/* Work Details */}
         {result.work && (
           <div className="space-y-6">
-            <div className="border border-gray-200 rounded-lg p-6">
+            <div className="border border-[var(--color-nusa-blue)]/20 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-[var(--color-deep-navy)] mb-4">
                 Detail Karya
               </h3>
               <div className="grid gap-4">
                 <div>
-                  <span className="text-sm font-medium text-[var(--color-slate-gray)] block">Judul Karya</span>
+                  <span className="text-sm font-medium text-[var(--color-deep-navy)]/70 block">Judul Karya</span>
                   <span className="text-[var(--color-deep-navy)] font-medium">
                     {result.work.title}
                   </span>
                 </div>
                 
                 <div>
-                  <span className="text-sm font-medium text-[var(--color-slate-gray)] block">Pemilik</span>
+                  <span className="text-sm font-medium text-[var(--color-deep-navy)]/70 block">Pemilik</span>
                   <div className="flex items-center space-x-2">
                     <span className="text-[var(--color-deep-navy)] font-medium">
                       {result.work.creator}
                     </span>
                     <button
                       onClick={() => copyToClipboard(result.work!.creatorWallet)}
-                      className="text-gray-400 hover:text-gray-600"
+                      className="text-[var(--color-deep-navy)]/50 hover:text-[var(--color-nusa-blue)] transition-colors"
                       title="Salin wallet address"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,27 +146,27 @@ export function VerificationResult({ result, onReset }: VerificationResultProps)
                       </svg>
                     </button>
                   </div>
-                  <p className="text-xs text-[var(--color-slate-gray)] font-mono">
+                  <p className="text-xs text-[var(--color-deep-navy)]/60 font-mono">
                     {result.work.creatorWallet}
                   </p>
                 </div>
 
                 <div>
-                  <span className="text-sm font-medium text-[var(--color-slate-gray)] block">Tanggal Minting</span>
+                  <span className="text-sm font-medium text-[var(--color-deep-navy)]/70 block">Tanggal Minting</span>
                   <span className="text-[var(--color-deep-navy)]">
                     {formatDate(result.work.mintDate)}
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-sm font-medium text-[var(--color-slate-gray)] block">Token ID</span>
+                  <span className="text-sm font-medium text-[var(--color-deep-navy)]/70 block">Token ID</span>
                   <div className="flex items-center space-x-2">
                     <span className="text-[var(--color-deep-navy)] font-mono">
                       #{result.work.tokenId}
                     </span>
                     <button
                       onClick={() => copyToClipboard(result.work!.tokenId)}
-                      className="text-gray-400 hover:text-gray-600"
+                      className="text-[var(--color-deep-navy)]/50 hover:text-[var(--color-nusa-blue)] transition-colors"
                       title="Salin Token ID"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -177,19 +177,19 @@ export function VerificationResult({ result, onReset }: VerificationResultProps)
                 </div>
 
                 <div>
-                  <span className="text-sm font-medium text-[var(--color-slate-gray)] block">IPFS Link</span>
+                  <span className="text-sm font-medium text-[var(--color-deep-navy)]/70 block">IPFS Link</span>
                   <div className="flex items-center space-x-2">
                     <a
                       href={result.work.ipfsLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[var(--color-primary-blue)] hover:underline font-mono text-sm break-all"
+                      className="text-[var(--color-nusa-blue)] hover:text-[var(--color-nusa-blue)]/80 hover:underline font-mono text-sm break-all transition-colors"
                     >
                       {result.work.ipfsLink}
                     </a>
                     <button
                       onClick={() => copyToClipboard(result.work!.ipfsLink)}
-                      className="text-gray-400 hover:text-gray-600"
+                      className="text-[var(--color-deep-navy)]/50 hover:text-[var(--color-nusa-blue)] transition-colors"
                       title="Salin IPFS Link"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,20 +202,20 @@ export function VerificationResult({ result, onReset }: VerificationResultProps)
             </div>
 
             {/* Blockchain Details */}
-            <div className="border border-gray-200 rounded-lg p-6">
+            <div className="border border-[var(--color-nusa-blue)]/20 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-[var(--color-deep-navy)] mb-4">
                 Informasi Blockchain
               </h3>
               <div className="grid gap-4">
                 <div>
-                  <span className="text-sm font-medium text-[var(--color-slate-gray)] block">Transaction Hash</span>
+                  <span className="text-sm font-medium text-[var(--color-deep-navy)]/70 block">Transaction Hash</span>
                   <div className="flex items-center space-x-2">
                     <span className="text-[var(--color-deep-navy)] font-mono text-sm break-all">
                       {result.work.transactionHash}
                     </span>
                     <button
                       onClick={() => copyToClipboard(result.work!.transactionHash)}
-                      className="text-gray-400 hover:text-gray-600"
+                      className="text-[var(--color-deep-navy)]/50 hover:text-[var(--color-nusa-blue)] transition-colors"
                       title="Salin Transaction Hash"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -226,21 +226,21 @@ export function VerificationResult({ result, onReset }: VerificationResultProps)
                 </div>
 
                 <div>
-                  <span className="text-sm font-medium text-[var(--color-slate-gray)] block">Block Number</span>
+                  <span className="text-sm font-medium text-[var(--color-deep-navy)]/70 block">Block Number</span>
                   <span className="text-[var(--color-deep-navy)] font-mono">
                     {result.work.blockNumber.toLocaleString()}
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-sm font-medium text-[var(--color-slate-gray)] block">Contract Address</span>
+                  <span className="text-sm font-medium text-[var(--color-deep-navy)]/70 block">Contract Address</span>
                   <div className="flex items-center space-x-2">
                     <span className="text-[var(--color-deep-navy)] font-mono text-sm">
                       {result.work.contractAddress}
                     </span>
                     <button
                       onClick={() => copyToClipboard(result.work!.contractAddress)}
-                      className="text-gray-400 hover:text-gray-600"
+                      className="text-[var(--color-deep-navy)]/50 hover:text-[var(--color-nusa-blue)] transition-colors"
                       title="Salin Contract Address"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -258,7 +258,7 @@ export function VerificationResult({ result, onReset }: VerificationResultProps)
                 href={getBlockExplorerUrl(result.work.transactionHash)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-gray-100 text-[var(--color-deep-navy)] px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center space-x-2"
+                className="bg-[var(--color-nusa-blue)]/10 text-[var(--color-deep-navy)] px-6 py-3 rounded-lg font-medium hover:bg-[var(--color-nusa-blue)]/20 transition-colors flex items-center space-x-2 border border-[var(--color-nusa-blue)]/20"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -267,7 +267,7 @@ export function VerificationResult({ result, onReset }: VerificationResultProps)
               </a>
               <button
                 onClick={onReset}
-                className="bg-[var(--color-primary-blue)] text-white px-6 py-3 rounded-lg font-medium hover:bg-[var(--color-primary-blue)]/90 transition-colors"
+                className="bg-[var(--color-nusa-blue)] text-white px-6 py-3 rounded-lg font-medium hover:bg-[var(--color-nusa-blue)]/90 transition-colors"
               >
                 Verifikasi Lainnya
               </button>
