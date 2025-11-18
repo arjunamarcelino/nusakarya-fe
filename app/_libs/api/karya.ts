@@ -41,12 +41,30 @@ export interface CreateKaryaResponse {
 }
 
 /**
+ * Get All Karya response
+ */
+export interface GetAllKaryaResponse {
+  karya: Karya[];
+}
+
+/**
  * Karya API Service
  * 
  * Handles karya (work) related API calls
  */
 export class KaryaApi {
   constructor(private client: ApiClient) {}
+
+  /**
+   * Get all karya for authenticated user
+   * 
+   * GET /v1/karya
+   * Retrieves all karya for the authenticated user
+   */
+  async getAllKarya(): Promise<Karya[]> {
+    const response = await this.client.get<GetAllKaryaResponse>("/karya");
+    return response.data.karya;
+  }
 
   /**
    * Create a new karya

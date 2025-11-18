@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/app/_hooks/useAuth";
+import { createLicenseApi, type License as ApiLicense } from "@/app/_libs/api";
 
 interface License {
   id: string;
@@ -19,61 +21,91 @@ interface License {
   blockNumber: number;
 }
 
-// Mock data - replace with actual data fetching
-const mockLicenses: License[] = [
-  {
-    id: "1",
-    workId: "1",
-    workTitle: "Digital Art Collection #1",
-    licensee: "Creative Studio XYZ",
-    licenseeAddress: "0x1234567890123456789012345678901234567890",
-    licenseType: "commercial",
-    startDate: "2024-01-20T00:00:00Z",
-    endDate: "2025-01-20T00:00:00Z",
-    price: 0.1,
-    royaltyRate: 5,
-    totalEarnings: 0.05,
-    status: "active",
-    transactionHash: "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-    blockNumber: 12345680
-  },
-  {
-    id: "2",
-    workId: "2",
-    workTitle: "Music Track - Sunset Dreams",
-    licensee: "Indie Film Productions",
-    licenseeAddress: "0x2345678901234567890123456789012345678901",
-    licenseType: "non-exclusive",
-    startDate: "2024-01-15T00:00:00Z",
-    endDate: "2026-01-15T00:00:00Z",
-    price: 0.2,
-    royaltyRate: 3,
-    totalEarnings: 0.12,
-    status: "active",
-    transactionHash: "0xbcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-    blockNumber: 12345675
-  },
-  {
-    id: "3",
-    workId: "1",
-    workTitle: "Digital Art Collection #1",
-    licensee: "Personal User",
-    licenseeAddress: "0x3456789012345678901234567890123456789012",
-    licenseType: "personal",
-    startDate: "2023-12-01T00:00:00Z",
-    endDate: "2024-12-01T00:00:00Z",
-    price: 0.05,
-    royaltyRate: 0,
-    totalEarnings: 0.05,
-    status: "expired",
-    transactionHash: "0xcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-    blockNumber: 12345650
+// Helper function to map API License to component License format
+function mapApiLicenseToLicense(apiLicense: ApiLicense): License {
+  // Generate dummy data for fields not provided by API
+  const dummyBlockNumber = Math.floor(Math.random() * 10000000) + 10000000;
+  const dummyLicensee = `Licensee ${Math.floor(Math.random() * 1000)}`;
+  const dummyLicenseeAddress = `0x${Math.random().toString(16).substr(2, 40)}`;
+  const dummyRoyaltyRate = Math.floor(Math.random() * 10) + 1; // 1-10%
+  const dummyTotalEarnings = parseFloat((apiLicense.price * 0.5).toFixed(3)); // 50% of price as earnings
+  
+  // Calculate end date based on duration (duration is in days)
+  const startDate = new Date(apiLicense.createdAt);
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + apiLicense.duration);
+  
+  // Determine status based on end date
+  const now = new Date();
+  let status: 'active' | 'expired' | 'cancelled' = 'active';
+  if (endDate < now) {
+    status = 'expired';
   }
-];
+  
+  // Map license type
+  const licenseTypeMap: Record<string, 'exclusive' | 'non-exclusive' | 'commercial' | 'personal'> = {
+    'commercial': 'commercial',
+    'personal': 'personal',
+    'exclusive': 'exclusive',
+    'non-exclusive': 'non-exclusive',
+  };
+  const licenseType = licenseTypeMap[apiLicense.type.toLowerCase()] || 'commercial';
+  
+  // Use description as workTitle (dummy - ideally we'd fetch karya title)
+  const workTitle = apiLicense.description.split('.')[0] || `Karya ${apiLicense.karyaId.slice(0, 8)}`;
+
+  return {
+    id: apiLicense.id,
+    workId: apiLicense.karyaId,
+    workTitle: workTitle,
+    licensee: dummyLicensee,
+    licenseeAddress: dummyLicenseeAddress,
+    licenseType: licenseType,
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
+    price: apiLicense.price,
+    royaltyRate: dummyRoyaltyRate,
+    totalEarnings: dummyTotalEarnings,
+    status: status,
+    transactionHash: apiLicense.txHash || `0x${Math.random().toString(16).substr(2, 64)}`,
+    blockNumber: dummyBlockNumber
+  };
+}
 
 export function MyLicenses() {
-  const [licenses] = useState<License[]>(mockLicenses);
+  const { isAuthenticated, getClient } = useAuth();
+  const [licenses, setLicenses] = useState<License[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'active' | 'expired' | 'cancelled'>('all');
+
+  useEffect(() => {
+    const fetchLicenses = async () => {
+      if (!isAuthenticated) return;
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const client = getClient();
+        const licenseApi = createLicenseApi(client);
+        const licenseList = await licenseApi.getAllLicenses();
+        
+        // Map API response to component format
+        const mappedLicenses = licenseList.map(mapApiLicenseToLicense);
+        setLicenses(mappedLicenses);
+      } catch (err) {
+        console.error("Failed to fetch licenses:", err);
+        setError(err instanceof Error ? err.message : "Gagal memuat lisensi");
+        // On error, show empty state
+        setLicenses([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLicenses();
+  }, [isAuthenticated, getClient]);
 
   const filteredLicenses = licenses.filter(license => 
     filter === 'all' || license.status === filter
@@ -117,6 +149,43 @@ export function MyLicenses() {
   const totalEarnings = licenses.reduce((sum, license) => sum + license.totalEarnings, 0);
   const activeLicenses = licenses.filter(license => license.status === 'active').length;
   const totalRoyalties = licenses.reduce((sum, license) => sum + (license.totalEarnings * license.royaltyRate / 100), 0);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--color-nusa-blue)]"></div>
+            <p className="text-sm text-[var(--color-slate-gray)]">Memuat lisensi...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
+          <div className="text-[var(--color-slate-gray)]">
+            <svg className="mx-auto h-12 w-12 mb-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 className="text-lg font-medium text-[var(--color-deep-navy)] mb-2">
+              Gagal memuat lisensi
+            </h3>
+            <p className="text-sm mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center px-4 py-2 bg-[var(--color-deep-navy)] text-white rounded-lg hover:bg-opacity-90 transition-colors"
+            >
+              Coba Lagi
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

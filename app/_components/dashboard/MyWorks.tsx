@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/_hooks/useAuth";
+import { createKaryaApi, type Karya } from "@/app/_libs/api";
 
 interface NFTWork {
   id: string;
@@ -22,50 +24,77 @@ interface NFTWork {
   status: 'active' | 'licensed' | 'sold';
 }
 
-// Mock data - replace with actual data fetching
-const mockWorks: NFTWork[] = [
-  {
-    id: "1",
-    title: "Digital Art Collection #1",
-    description: "A beautiful digital artwork showcasing modern abstract design",
-    workType: "Digital Art",
-    category: "Visual Art",
-    tags: ["abstract", "modern", "digital"],
-    ipfsHash: "QmXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx",
-    ipfsUrl: "https://ipfs.io/ipfs/QmXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx",
-    metadataUrl: "https://ipfs.io/ipfs/QmXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx",
-    registrationDate: "2024-01-15T10:30:00Z",
-    transactionHash: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-    blockNumber: 12345678,
-    contractAddress: "0xabcdef1234567890abcdef1234567890abcdef12",
-    licenseCount: 5,
-    totalEarnings: 0.25,
-    status: "active"
-  },
-  {
-    id: "2",
-    title: "Music Track - Sunset Dreams",
-    description: "An ambient electronic track perfect for relaxation",
-    workType: "Music",
-    category: "Electronic",
-    tags: ["ambient", "electronic", "relaxation"],
-    ipfsHash: "QmYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYy",
-    ipfsUrl: "https://ipfs.io/ipfs/QmYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYy",
-    metadataUrl: "https://ipfs.io/ipfs/QmYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYy",
-    registrationDate: "2024-01-10T14:20:00Z",
-    transactionHash: "0x2345678901bcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-    blockNumber: 12345670,
-    contractAddress: "0xabcdef1234567890abcdef1234567890abcdef12",
-    licenseCount: 12,
-    totalEarnings: 0.8,
-    status: "licensed"
+// Helper function to map API Karya to NFTWork format
+function mapKaryaToNFTWork(karya: Karya): NFTWork {
+  // Generate dummy data for fields not provided by API
+  const dummyBlockNumber = Math.floor(Math.random() * 10000000) + 10000000;
+  const dummyContractAddress = "0xabcdef1234567890abcdef1234567890abcdef12";
+  const dummyLicenseCount = Math.floor(Math.random() * 20) + 1;
+  const dummyTotalEarnings = parseFloat((Math.random() * 2).toFixed(3));
+  
+  // Determine status based on license count (dummy logic)
+  let status: 'active' | 'licensed' | 'sold' = 'active';
+  if (dummyLicenseCount > 10) {
+    status = 'licensed';
+  } else if (dummyLicenseCount > 5) {
+    status = 'active';
   }
-];
+
+  return {
+    id: karya.id,
+    title: karya.title,
+    description: karya.description,
+    workType: karya.type,
+    category: karya.category || "Uncategorized",
+    tags: karya.tag || [],
+    ipfsHash: karya.fileHash,
+    ipfsUrl: karya.fileUrl,
+    metadataUrl: karya.fileUrl, // Use fileUrl as metadataUrl
+    registrationDate: karya.createdAt,
+    transactionHash: karya.txHash || `0x${Math.random().toString(16).substr(2, 64)}`,
+    blockNumber: dummyBlockNumber,
+    contractAddress: dummyContractAddress,
+    licenseCount: dummyLicenseCount,
+    totalEarnings: dummyTotalEarnings,
+    status: status
+  };
+}
 
 export function MyWorks() {
   const router = useRouter();
-  const [works] = useState<NFTWork[]>(mockWorks);
+  const { isAuthenticated, getClient } = useAuth();
+  const [works, setWorks] = useState<NFTWork[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'active' | 'licensed' | 'sold'>('all');
+
+  useEffect(() => {
+    const fetchKarya = async () => {
+      if (!isAuthenticated) return;
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const client = getClient();
+        const karyaApi = createKaryaApi(client);
+        const karyaList = await karyaApi.getAllKarya();
+        
+        // Map API response to component format
+        const mappedWorks = karyaList.map(mapKaryaToNFTWork);
+        setWorks(mappedWorks);
+      } catch (err) {
+        console.error("Failed to fetch karya:", err);
+        setError(err instanceof Error ? err.message : "Gagal memuat karya");
+        // On error, show empty state
+        setWorks([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchKarya();
+  }, [isAuthenticated, getClient]);
 
   const handleCreateLicense = (work: NFTWork) => {
     // Navigate to app license page with work ID as query parameter
@@ -94,6 +123,43 @@ export function MyWorks() {
   const getBasescanUrl = (txHash: string) => {
     return `https://basescan.org/tx/${txHash}`;
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--color-nusa-blue)]"></div>
+            <p className="text-sm text-[var(--color-slate-gray)]">Memuat karya...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
+          <div className="text-[var(--color-slate-gray)]">
+            <svg className="mx-auto h-12 w-12 mb-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 className="text-lg font-medium text-[var(--color-deep-navy)] mb-2">
+              Gagal memuat karya
+            </h3>
+            <p className="text-sm mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center px-4 py-2 bg-[var(--color-deep-navy)] text-white rounded-lg hover:bg-opacity-90 transition-colors"
+            >
+              Coba Lagi
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
