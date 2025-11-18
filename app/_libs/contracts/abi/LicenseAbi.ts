@@ -188,7 +188,6 @@ export const LicenseAbi = [
         type: "tuple",
       },
       { internalType: "uint256", name: "amount", type: "uint256" },
-      { internalType: "uint256", name: "bid", type: "uint256" },
     ],
     name: "mintLicense",
     outputs: [],

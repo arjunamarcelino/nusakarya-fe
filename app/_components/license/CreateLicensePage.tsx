@@ -2,97 +2,214 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { LicenseForm } from "./LicenseForm";
-import { DigitalWork } from "./types";
+import { DigitalWork, LicenseFormData } from "./types";
+import { useAuth } from "@/app/_hooks/useAuth";
+import { createKaryaApi, createLicenseApi, type Karya } from "@/app/_libs/api";
+import { createLicenseService } from "@/app/_libs/services/license";
+import { getWalletAddress } from "@/app/_libs/utils/wallet";
+import { NETWORKS } from "@/app/_libs/contracts/config";
+import type { EIP1193Provider } from "viem";
 
-// Mock function to get work by ID - in real app, this would be an API call
-const getWorkById = (workId: string): DigitalWork | null => {
-  const mockWorks: DigitalWork[] = [
-    {
-      id: '1',
-      nftId: '1234',
-      title: 'Digital Art Collection #1',
-      description: 'Koleksi seni digital dengan tema futuristik',
-      workType: 'image',
-      category: 'digital-art',
-      tags: ['art', 'futuristic', 'digital'],
-      ipfsHash: 'Qm1234567890abcdef',
-      ipfsUrl: 'https://ipfs.io/ipfs/Qm1234567890abcdef',
-      metadataUrl: 'https://ipfs.io/ipfs/Qm1234567890abcdef',
-      registrationDate: '2024-01-15T10:30:00Z',
-      contractAddress: '0x1234567890abcdef1234567890abcdef12345678',
-      ownerAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
-      imageUrl: '/images/sample-art.jpg'
-    },
-    {
-      id: '2',
-      nftId: '1235',
-      title: 'Music Track - Ocean Waves',
-      description: 'Lagu instrumental dengan suara ombak laut',
-      workType: 'audio',
-      category: 'music',
-      tags: ['music', 'ambient', 'ocean'],
-      ipfsHash: 'Qm2345678901bcdefg',
-      ipfsUrl: 'https://ipfs.io/ipfs/Qm2345678901bcdefg',
-      metadataUrl: 'https://ipfs.io/ipfs/Qm2345678901bcdefg',
-      registrationDate: '2024-01-20T14:15:00Z',
-      contractAddress: '0x2345678901bcdefg2345678901bcdefg23456789',
-      ownerAddress: '0xbcdefg1234567890bcdefg1234567890bcdefg12',
-    },
-    {
-      id: '3',
-      nftId: '1236',
-      title: '3D Model - Ancient Temple',
-      description: 'Model 3D kuil kuno untuk game atau VR',
-      workType: '3d-model',
-      category: '3d-art',
-      tags: ['3d', 'temple', 'ancient', 'game'],
-      ipfsHash: 'Qm3456789012cdefgh',
-      ipfsUrl: 'https://ipfs.io/ipfs/Qm3456789012cdefgh',
-      metadataUrl: 'https://ipfs.io/ipfs/Qm3456789012cdefgh',
-      registrationDate: '2024-01-25T09:45:00Z',
-      contractAddress: '0x3456789012cdefgh3456789012cdefgh34567890',
-      ownerAddress: '0xcdefgh1234567890cdefgh1234567890cdefgh12',
-    }
-  ];
+// Map Karya from API to DigitalWork format
+function mapKaryaToDigitalWork(karya: Karya, walletAddress: string | null): DigitalWork {
+  // Generate dummy data for fields not provided by API
+  const dummyContractAddress = "0xabcdef1234567890abcdef1234567890abcdef12";
   
-  return mockWorks.find(w => w.id === workId) || null;
-};
+  return {
+    id: karya.id,
+    nftId: karya.nftId || "",
+    title: karya.title,
+    description: karya.description,
+    workType: karya.type,
+    category: karya.category || "Uncategorized",
+    tags: karya.tag || [],
+    ipfsHash: karya.fileHash,
+    ipfsUrl: karya.fileUrl,
+    metadataUrl: karya.fileUrl, // Use fileUrl as metadataUrl
+    registrationDate: karya.createdAt,
+    contractAddress: dummyContractAddress,
+    ownerAddress: walletAddress || "0x0000000000000000000000000000000000000000",
+  };
+}
 
 export function CreateLicensePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isAuthenticated, getClient, isLoading: authLoading } = useAuth();
+  const { ready, authenticated, user: privyUser } = usePrivy();
+  const { wallets } = useWallets();
   const [work, setWork] = useState<DigitalWork | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const workId = searchParams.get('workId');
+    const fetchWork = async () => {
+      const workId = searchParams.get('workId');
     
-    if (workId) {
-      const foundWork = getWorkById(workId);
-      if (foundWork) {
-        setWork(foundWork);
-      } else {
-        // Work not found, redirect to dashboard
-        router.push('/app/dashboard');
+      // Wait for auth to be ready
+      if (authLoading) {
+        return;
       }
-    } else {
-      // No workId provided, redirect to dashboard
-      router.push('/app/dashboard');
-    }
-    
-    setIsLoading(false);
-  }, [searchParams, router]);
+      
+      if (!workId) {
+        // No workId provided, redirect to dashboard
+        setError('Tidak ada workId dalam URL');
+        setTimeout(() => {
+          router.push('/app/dashboard');
+        }, 2000);
+        return;
+      }
 
-  const handleSubmit = async () => {
+      if (!isAuthenticated) {
+        // Not authenticated, redirect to dashboard
+        setError('Anda harus login terlebih dahulu');
+        setTimeout(() => {
+          router.push('/app/dashboard');
+        }, 2000);
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const client = getClient();
+        const karyaApi = createKaryaApi(client);
+        const karyaList = await karyaApi.getAllKarya();
+        
+        // Find the karya with matching ID
+        const foundKarya = karyaList.find(k => k.id === workId);
+        
+        if (foundKarya) {
+          // Get wallet address from user
+          const walletAddress = privyUser?.wallet?.address || null;
+          const digitalWork = mapKaryaToDigitalWork(foundKarya, walletAddress);
+          setWork(digitalWork);
+        } else {
+          // Work not found, redirect to dashboard
+          setError(`Karya tidak ditemukan. ID: ${workId}`);
+          setTimeout(() => {
+            router.push('/app/dashboard');
+          }, 3000);
+        }
+      } catch (err) {
+        console.error("Failed to fetch karya:", err);
+        setError(err instanceof Error ? err.message : "Gagal memuat karya");
+        setTimeout(() => {
+          router.push('/app/dashboard');
+        }, 3000);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchWork();
+  }, [searchParams, router, isAuthenticated, getClient, privyUser, authLoading]);
+
+  const handleSubmit = async (formData: LicenseFormData) => {
     if (!work) return;
 
-    setIsSubmitting(true);
+    // Check authentication
+    if (!ready || !authenticated || !privyUser) {
+      alert("Silakan login terlebih dahulu");
+      return;
+    }
+
+    // Get wallet address
+    const walletAddress = getWalletAddress(privyUser);
+    if (!walletAddress) {
+      alert("Alamat wallet tidak ditemukan. Silakan hubungkan wallet Anda.");
+      return;
+    }
+
+    // Get wallet provider from Privy
+    const wallet = wallets[0];
+    if (!wallet) {
+      alert("Wallet tidak ditemukan. Silakan hubungkan wallet Anda.");
+      return;
+    }
+
+    // Get Ethereum provider from Privy wallet
+    let ethereumProvider: EIP1193Provider;
     try {
-      // Simulate API call to create license
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const provider = await wallet.getEthereumProvider();
+      if (!provider) {
+        alert("Ethereum provider tidak tersedia. Silakan hubungkan wallet Anda.");
+        return;
+      }
+      // Cast to EIP1193Provider to handle type compatibility
+      ethereumProvider = provider as unknown as EIP1193Provider;
+    } catch (err) {
+      alert("Gagal mendapatkan provider wallet. Silakan coba lagi.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      // Calculate expiry timestamp
+      const now = Math.floor(Date.now() / 1000); // Current timestamp in seconds
+      let durationInSeconds: number;
       
+      switch (formData.durationUnit) {
+        case 'days':
+          durationInSeconds = formData.duration * 24 * 60 * 60;
+          break;
+        case 'months':
+          durationInSeconds = formData.duration * 30 * 24 * 60 * 60; // Approximate
+          break;
+        case 'years':
+          durationInSeconds = formData.duration * 365 * 24 * 60 * 60; // Approximate
+          break;
+        default:
+          durationInSeconds = formData.duration * 24 * 60 * 60;
+      }
+      
+      const expiry = BigInt(now + durationInSeconds);
+
+      // Map license type to enum (commercial = 0, other = 1)
+      const usageType: 0 | 1 = formData.licenseType === 'commercial' ? 0 : 1;
+
+      // Parse nftId to bigint
+      const certificateId = BigInt(work.nftId || "0");
+      if (certificateId === BigInt(0)) {
+        throw new Error("NFT ID tidak valid");
+      }
+
+      // Create license service
+      const licenseService = createLicenseService(
+        NETWORKS.ETH_SEPOLIA,
+        ethereumProvider,
+        walletAddress
+      );
+
+      // Call mintLicense contract function
+      const result = await licenseService.mintLicense({
+        to: walletAddress,
+        certificateId,
+        expiry,
+        usageType,
+        amount: BigInt(1),
+      });
+
+      // Call POST API to create license
+      const client = getClient();
+      const licenseApi = createLicenseApi(client);
+      
+      await licenseApi.createLicense({
+        karyaId: work.id,
+        type: formData.licenseType,
+        price: formData.price,
+        duration: formData.duration,
+        description: formData.description,
+        tnc: formData.terms,
+        txHash: result.transactionHash,
+      });
+
       // Show success message
       alert('Lisensi berhasil dibuat!');
       
@@ -100,7 +217,9 @@ export function CreateLicensePage() {
       router.push('/app/dashboard');
     } catch (error) {
       console.error('Failed to create license:', error);
-      alert('Gagal membuat lisensi. Silakan coba lagi.');
+      const errorMessage = error instanceof Error ? error.message : "Gagal membuat lisensi. Silakan coba lagi.";
+      setError(errorMessage);
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -110,12 +229,31 @@ export function CreateLicensePage() {
     router.push('/app/dashboard');
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen bg-[var(--color-ivory-white)] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--color-nusa-blue)]"></div>
-          <p className="text-sm text-[var(--color-slate-gray)]">Memuat...</p>
+          <p className="text-sm text-[var(--color-slate-gray)]">
+            {authLoading ? "Memuat autentikasi..." : "Memuat karya..."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[var(--color-ivory-white)] flex items-center justify-center">
+        <div className="bg-white border border-red-200 rounded-xl p-8 text-center max-w-md">
+          <div className="flex flex-col items-center gap-4">
+            <svg className="w-12 h-12 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 className="text-lg font-semibold text-[var(--color-deep-navy)]">Gagal Memuat Karya</h3>
+            <p className="text-sm text-[var(--color-slate-gray)]">{error}</p>
+            <p className="text-xs text-[var(--color-slate-gray)] mt-2">Mengalihkan ke dashboard...</p>
+          </div>
         </div>
       </div>
     );

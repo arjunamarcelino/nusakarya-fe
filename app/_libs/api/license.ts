@@ -70,7 +70,7 @@ export class LicenseApi {
    * Creates a new license for a karya
    */
   async createLicense(data: CreateLicenseRequest): Promise<License> {
-    const response = await this.client.post<CreateLicenseResponse>("/v1/license", data);
+    const response = await this.client.post<CreateLicenseResponse>("/license", data);
     return response.data.license;
   }
 }
