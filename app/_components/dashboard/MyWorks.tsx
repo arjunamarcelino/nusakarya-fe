@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/_hooks/useAuth";
 import { createKaryaApi, type Karya } from "@/app/_libs/api";
 
+interface RoyaltyRecipient {
+  address: string;
+  percentage: number;
+}
+
 interface NFTWork {
   id: string;
   title: string;
@@ -22,6 +27,12 @@ interface NFTWork {
   licenseCount: number;
   totalEarnings: number;
   status: 'active' | 'licensed' | 'sold';
+  royaltyRecipients: RoyaltyRecipient[];
+}
+
+// Helper function to generate dummy Ethereum address
+function generateDummyAddress(): string {
+  return `0x${Math.random().toString(16).substr(2, 40)}`;
 }
 
 // Helper function to map API Karya to NFTWork format
@@ -31,6 +42,29 @@ function mapKaryaToNFTWork(karya: Karya): NFTWork {
   const dummyContractAddress = "0xabcdef1234567890abcdef1234567890abcdef12";
   const dummyLicenseCount = Math.floor(Math.random() * 20) + 1;
   const dummyTotalEarnings = parseFloat((Math.random() * 2).toFixed(3));
+  
+  // Generate dummy royalty recipients (1-3 recipients)
+  const recipientCount = Math.floor(Math.random() * 3) + 1;
+  const dummyRoyaltyRecipients: RoyaltyRecipient[] = [];
+  let totalPercentage = 0;
+  
+  for (let i = 0; i < recipientCount; i++) {
+    const percentage = i === recipientCount - 1 
+      ? Math.max(1, 100 - totalPercentage) // Last one gets remaining
+      : Math.floor(Math.random() * 30) + 5; // 5-35% for others
+    totalPercentage += percentage;
+    
+    dummyRoyaltyRecipients.push({
+      address: generateDummyAddress(),
+      percentage: Math.min(percentage, 100 - (totalPercentage - percentage))
+    });
+  }
+  
+  // Ensure total doesn't exceed 100%
+  const finalTotal = dummyRoyaltyRecipients.reduce((sum, r) => sum + r.percentage, 0);
+  if (finalTotal > 100) {
+    dummyRoyaltyRecipients[dummyRoyaltyRecipients.length - 1].percentage -= (finalTotal - 100);
+  }
   
   // Determine status based on license count (dummy logic)
   let status: 'active' | 'licensed' | 'sold' = 'active';
@@ -56,8 +90,281 @@ function mapKaryaToNFTWork(karya: Karya): NFTWork {
     contractAddress: dummyContractAddress,
     licenseCount: dummyLicenseCount,
     totalEarnings: dummyTotalEarnings,
-    status: status
+    status: status,
+    royaltyRecipients: dummyRoyaltyRecipients
   };
+}
+
+interface RoyaltyModalProps {
+  work: NFTWork | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onUpdate: (workId: string, recipients: RoyaltyRecipient[]) => void;
+}
+
+function RoyaltyModal({ work, isOpen, onClose, onUpdate }: RoyaltyModalProps) {
+  const [recipients, setRecipients] = useState<RoyaltyRecipient[]>([]);
+  const [newAddress, setNewAddress] = useState("");
+  const [newPercentage, setNewPercentage] = useState("");
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (work) {
+      setRecipients([...work.royaltyRecipients]);
+    }
+  }, [work]);
+
+  if (!isOpen || !work) return null;
+
+  const totalPercentage = recipients.reduce((sum, r) => sum + r.percentage, 0);
+  const remainingPercentage = 100 - totalPercentage;
+
+  const handleAdd = () => {
+    if (!newAddress || !newPercentage) return;
+    
+    const percentage = parseFloat(newPercentage);
+    if (percentage <= 0 || percentage > remainingPercentage) {
+      alert(`Persentase harus antara 0 dan ${remainingPercentage.toFixed(2)}%`);
+      return;
+    }
+
+    // Basic address validation
+    if (!newAddress.startsWith("0x") || newAddress.length !== 42) {
+      alert("Alamat harus berupa alamat Ethereum yang valid (0x...)");
+      return;
+    }
+
+    setRecipients([...recipients, { address: newAddress, percentage }]);
+    setNewAddress("");
+    setNewPercentage("");
+  };
+
+  const handleUpdate = (index: number) => {
+    if (!newAddress || !newPercentage) return;
+    
+    const percentage = parseFloat(newPercentage);
+    const currentRecipient = recipients[index];
+    const maxPercentage = remainingPercentage + currentRecipient.percentage;
+    
+    if (percentage <= 0 || percentage > maxPercentage) {
+      alert(`Persentase harus antara 0 dan ${maxPercentage.toFixed(2)}%`);
+      return;
+    }
+
+    if (!newAddress.startsWith("0x") || newAddress.length !== 42) {
+      alert("Alamat harus berupa alamat Ethereum yang valid (0x...)");
+      return;
+    }
+
+    const updated = [...recipients];
+    updated[index] = { address: newAddress, percentage };
+    setRecipients(updated);
+    setEditingIndex(null);
+    setNewAddress("");
+    setNewPercentage("");
+  };
+
+  const handleDelete = (index: number) => {
+    setRecipients(recipients.filter((_, i) => i !== index));
+  };
+
+  const handleSave = () => {
+    if (totalPercentage !== 100) {
+      alert("Total persentase harus tepat 100%");
+      return;
+    }
+    onUpdate(work.id, recipients);
+    onClose();
+  };
+
+  const startEdit = (index: number) => {
+    setEditingIndex(index);
+    setNewAddress(recipients[index].address);
+    setNewPercentage(recipients[index].percentage.toString());
+  };
+
+  return (
+    <>
+      {/* Backdrop with gradient */}
+      <div 
+        className="fixed inset-0 z-[9998] bg-gradient-to-br from-black/20 via-black/40 to-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      
+      {/* Modal */}
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
+        <div 
+          className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto pointer-events-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-[var(--color-deep-navy)]">
+                Kelola Penerima Royalti
+              </h3>
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-sm text-[var(--color-slate-gray)] mb-2">
+                <strong>Karya:</strong> {work.title}
+              </p>
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <span className="text-sm font-medium text-blue-900">Total Persentase:</span>
+                <span className={`text-lg font-bold ${totalPercentage === 100 ? 'text-green-600' : totalPercentage > 100 ? 'text-red-600' : 'text-orange-600'}`}>
+                  {totalPercentage.toFixed(2)}%
+                </span>
+              </div>
+              {totalPercentage !== 100 && (
+                <p className="text-xs text-orange-600 mt-1">
+                  {totalPercentage < 100 
+                    ? `Sisa: ${remainingPercentage.toFixed(2)}%` 
+                    : `Melebihi: ${(totalPercentage - 100).toFixed(2)}%`}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
+              {recipients.length === 0 ? (
+                <p className="text-sm text-[var(--color-slate-gray)] text-center py-4 italic">
+                  Belum ada penerima royalti. Tambahkan penerima baru di bawah.
+                </p>
+              ) : (
+                recipients.map((recipient, index) => (
+                <div key={index} className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg">
+                  {editingIndex === index ? (
+                    <>
+                      <div className="flex-1">
+                        <input
+                          type="text"
+                          value={newAddress}
+                          onChange={(e) => setNewAddress(e.target.value)}
+                          placeholder="0x..."
+                          className="w-full px-3 py-2 bg-white border-2 border-gray-300 rounded-md text-sm mb-2 text-[var(--color-deep-navy)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        <input
+                          type="number"
+                          value={newPercentage}
+                          onChange={(e) => setNewPercentage(e.target.value)}
+                          placeholder="Persentase"
+                          step="0.01"
+                          min="0"
+                          max="100"
+                          className="w-full px-3 py-2 bg-white border-2 border-gray-300 rounded-md text-sm text-[var(--color-deep-navy)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <button
+                        onClick={() => handleUpdate(index)}
+                        className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
+                      >
+                        Simpan
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingIndex(null);
+                          setNewAddress("");
+                          setNewPercentage("");
+                        }}
+                        className="px-3 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 text-sm"
+                      >
+                        Batal
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-[var(--color-deep-navy)] break-all">
+                          {recipient.address}
+                        </p>
+                        <p className="text-xs text-[var(--color-slate-gray)]">
+                          {recipient.percentage.toFixed(2)}%
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => startEdit(index)}
+                        className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(index)}
+                        className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs"
+                      >
+                        Hapus
+                      </button>
+                    </>
+                  )}
+                </div>
+                ))
+              )}
+            </div>
+
+            {editingIndex === null && (
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={newAddress}
+                    onChange={(e) => setNewAddress(e.target.value)}
+                    placeholder="Alamat Ethereum (0x...)"
+                    className="flex-1 px-3 py-2 bg-white border-2 border-gray-300 rounded-md text-sm text-[var(--color-deep-navy)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <input
+                    type="number"
+                    value={newPercentage}
+                    onChange={(e) => setNewPercentage(e.target.value)}
+                    placeholder="%"
+                    step="0.01"
+                    min="0"
+                    max={remainingPercentage}
+                    className="w-24 px-3 py-2 bg-white border-2 border-gray-300 rounded-md text-sm text-[var(--color-deep-navy)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <button
+                    onClick={handleAdd}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+                  >
+                    Tambah
+                  </button>
+                </div>
+                {remainingPercentage > 0 && (
+                  <p className="text-xs text-[var(--color-slate-gray)]">
+                    Sisa persentase yang tersedia: {remainingPercentage.toFixed(2)}%
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button
+              onClick={handleSave}
+              disabled={totalPercentage !== 100}
+              className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:ml-3 sm:w-auto sm:text-sm ${
+                totalPercentage === 100
+                  ? 'bg-[var(--color-deep-navy)] hover:bg-opacity-90'
+                  : 'bg-gray-400 cursor-not-allowed'
+              }`}
+            >
+              Simpan Perubahan
+            </button>
+            <button
+              onClick={onClose}
+              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }
 
 export function MyWorks() {
@@ -67,6 +374,8 @@ export function MyWorks() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'active' | 'licensed' | 'sold'>('all');
+  const [selectedWork, setSelectedWork] = useState<NFTWork | null>(null);
+  const [isRoyaltyModalOpen, setIsRoyaltyModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchKarya = async () => {
@@ -99,6 +408,21 @@ export function MyWorks() {
   const handleCreateLicense = (work: NFTWork) => {
     // Navigate to app license page with work ID as query parameter
     router.push(`/app/license?workId=${work.id}`);
+  };
+
+  const handleOpenRoyaltyModal = (work: NFTWork) => {
+    setSelectedWork(work);
+    setIsRoyaltyModalOpen(true);
+  };
+
+  const handleUpdateRoyalty = (workId: string, recipients: RoyaltyRecipient[]) => {
+    // Update the work's royalty recipients (dummy update)
+    setWorks(works.map(work => 
+      work.id === workId 
+        ? { ...work, royaltyRecipients: recipients }
+        : work
+    ));
+    console.log("Updated royalty recipients for work:", workId, recipients);
   };
 
   const filteredWorks = works.filter(work => 
@@ -304,7 +628,7 @@ export function MyWorks() {
                       ))}
                     </div>
                     
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
                       <div>
                         <span className="text-[var(--color-slate-gray)]">Tanggal Daftar:</span>
                         <p className="font-medium text-[var(--color-deep-navy)]">
@@ -330,6 +654,43 @@ export function MyWorks() {
                         </p>
                       </div>
                     </div>
+
+                    {/* Royalty Recipients Section */}
+                    <div className="border-t border-gray-200 pt-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h5 className="text-sm font-semibold text-[var(--color-deep-navy)] flex items-center">
+                          <svg className="w-4 h-4 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                          Penerima Royalti ({work.royaltyRecipients.length})
+                        </h5>
+                        <button
+                          onClick={() => handleOpenRoyaltyModal(work)}
+                          className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 transition-colors"
+                        >
+                          Kelola
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {work.royaltyRecipients.map((recipient, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-mono text-[var(--color-deep-navy)] truncate">
+                                {recipient.address}
+                              </p>
+                            </div>
+                            <span className="ml-2 text-xs font-semibold text-purple-600 whitespace-nowrap">
+                              {recipient.percentage.toFixed(2)}%
+                            </span>
+                          </div>
+                        ))}
+                        {work.royaltyRecipients.length === 0 && (
+                          <p className="text-xs text-[var(--color-slate-gray)] italic">
+                            Belum ada penerima royalti
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                   
                   <div className="flex flex-col space-y-2 ml-6">
@@ -342,6 +703,17 @@ export function MyWorks() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Buat Lisensi
+                    </button>
+                    
+                    <button
+                      type="button"
+                      onClick={() => handleOpenRoyaltyModal(work)}
+                      className="inline-flex items-center px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      Kelola Royalti
                     </button>
                     
                     <a
@@ -374,6 +746,17 @@ export function MyWorks() {
           </div>
         )}
       </div>
+
+      {/* Royalty Modal */}
+      <RoyaltyModal
+        work={selectedWork}
+        isOpen={isRoyaltyModalOpen}
+        onClose={() => {
+          setIsRoyaltyModalOpen(false);
+          setSelectedWork(null);
+        }}
+        onUpdate={handleUpdateRoyalty}
+      />
     </div>
   );
 }
