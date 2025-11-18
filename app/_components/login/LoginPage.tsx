@@ -5,31 +5,57 @@ import Image from "next/image";
 import { usePrivy } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/app/_hooks/useAuth";
 
 export function LoginPage() {
   const { ready, authenticated, login } = usePrivy();
+  const { verifyToken } = useAuth();
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [hasVerified, setHasVerified] = useState(false);
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated and verified
   useEffect(() => {
-    if (ready && authenticated) {
+    if (ready && authenticated && !hasVerified) {
       setIsRedirecting(true);
-      // Small delay to show loading state
-      setTimeout(() => {
-        router.push("/app/dashboard");
-      }, 500);
+      setApiError(null);
+      
+      // Verify token and then redirect
+      verifyToken()
+        .then(() => {
+          setHasVerified(true);
+          // Small delay to show loading state
+          setTimeout(() => {
+            router.push("/app/dashboard");
+          }, 500);
+        })
+        .catch((error) => {
+          console.error("Token verification failed:", error);
+          setApiError(error instanceof Error ? error.message : "Failed to verify token");
+          setIsRedirecting(false);
+          setHasVerified(false);
+        });
+    } else if (ready && !authenticated) {
+      // Reset state when not authenticated
+      setHasVerified(false);
+      setIsRedirecting(false);
     }
-  }, [ready, authenticated, router]);
+  }, [ready, authenticated, router, verifyToken, hasVerified]);
 
-  // Handle login success - redirect after successful authentication
+  // Handle login success - verify token and redirect
   const handleLogin = async () => {
     try {
+      setApiError(null);
+      setIsRedirecting(false);
+      setHasVerified(false);
       await login();
-      // The useEffect above will handle the redirect once authenticated becomes true
+      // After login succeeds, authenticated will become true
+      // The useEffect above will handle the API call and redirect
     } catch (error) {
       console.error("Login failed:", error);
       setIsRedirecting(false);
+      setApiError(error instanceof Error ? error.message : "Login failed");
     }
   };
 
@@ -181,7 +207,7 @@ export function LoginPage() {
                   <div className="flex flex-col items-center justify-center py-12 gap-4">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--color-nusa-blue)]"></div>
                     <p className="text-sm text-[var(--color-slate-gray)] text-center">
-                      Login berhasil! Mengarahkan ke dashboard...
+                      {apiError ? "Verifikasi token..." : "Login berhasil! Mengarahkan ke dashboard..."}
                     </p>
                   </div>
                 ) : (
@@ -194,6 +220,12 @@ export function LoginPage() {
                       Gunakan metode login yang paling nyaman untuk Anda
                     </p>
                   </div>
+
+                  {apiError && (
+                    <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30">
+                      <p className="text-sm text-red-500 text-center">{apiError}</p>
+                    </div>
+                  )}
 
                   {ready ? (
                     <div className="flex flex-col gap-4">

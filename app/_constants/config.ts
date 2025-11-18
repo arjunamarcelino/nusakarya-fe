@@ -1,1 +1,8 @@
 export const APP = "";
+
+export const config = {
+  ADDRESS_AUTHEN_REVENUE: process.env.NEXT_PUBLIC_ADDRESS_AUTHEN_REVENUE || "",
+  ADDRESS_AUTHEN_NFT: process.env.NEXT_PUBLIC_ADDRESS_AUTHEN_NFT || "",
+  ADDRESS_AUTHEN_LICENSE: process.env.NEXT_PUBLIC_ADDRESS_AUTHEN_LICENSE || "",
+};
+

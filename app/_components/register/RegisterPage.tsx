@@ -2,12 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { FileUpload } from "./FileUpload";
 import { MetadataForm, WorkMetadata } from "./MetadataForm";
 import { FilePreview } from "./FilePreview";
 import { MintCertificate } from "./MintCertificate";
 import { TransactionNotification } from "./TransactionNotification";
 import { CertificateResult } from "./CertificateResult";
+import { uploadFile, uploadMetadata, getGatewayUrl, type PinataUploadResponse } from "@/app/_libs/pinata";
+import { calculateFileHash } from "@/app/_libs/utils/fileHash";
+import { createNftService, MAX_ROYALTY_BPS } from "@/app/_libs/services/nft";
+import { getWalletAddress } from "@/app/_libs/utils/wallet";
+import { NETWORKS } from "@/app/_libs/contracts/config";
+import { useAuth } from "@/app/_hooks/useAuth";
+import { createKaryaApi } from "@/app/_libs/api/karya";
+import type { Hex, EIP1193Provider } from "viem";
 
 type TransactionStatus = 'pending' | 'success' | 'failed';
 
@@ -32,6 +41,9 @@ interface Certificate {
 
 export function RegisterPage() {
   const router = useRouter();
+  const { user, ready, authenticated } = usePrivy();
+  const { wallets } = useWallets();
+  const { getClient } = useAuth();
   const [currentStep, setCurrentStep] = useState<'upload' | 'metadata' | 'preview' | 'mint' | 'result'>('upload');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [metadata, setMetadata] = useState<WorkMetadata>({
@@ -45,6 +57,7 @@ export function RegisterPage() {
   const [isMinting, setIsMinting] = useState(false);
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [certificate, setCertificate] = useState<Certificate | null>(null);
+  const [mintProgress, setMintProgress] = useState<string>("");
 
   const handleFileSelect = async (file: File | null) => {
     if (file) {
@@ -68,56 +81,183 @@ export function RegisterPage() {
       return;
     }
 
+    // Check authentication
+    if (!ready || !authenticated || !user) {
+      alert("Please login to mint NFT certificate");
+      return;
+    }
+
+    // Get wallet address
+    const walletAddress = getWalletAddress(user);
+    if (!walletAddress) {
+      alert("Wallet address not found. Please connect your wallet.");
+      return;
+    }
+
+    // Get wallet provider from Privy
+    const wallet = wallets[0];
+    if (!wallet) {
+      alert("Wallet not found. Please connect your wallet.");
+      return;
+    }
+
+    // Get Ethereum provider from Privy wallet
+    const ethereumProvider = await wallet.getEthereumProvider();
+    if (!ethereumProvider) {
+      alert("Ethereum provider not available. Please connect your wallet.");
+      return;
+    }
+
     setIsMinting(true);
     setCurrentStep('mint');
+    setMintProgress("Preparing minting process...");
 
     try {
-      // Simulate IPFS upload
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Simulate blockchain transaction
-      const mockTransaction: Transaction = {
-        hash: '0x' + Math.random().toString(16).substr(2, 64),
-        status: 'pending',
-        timestamp: Date.now()
+      // Step 1: Calculate file hash
+      setMintProgress("Calculating file hash...");
+      const fileHash = await calculateFileHash(selectedFile);
+      const fileHashBytes32 = fileHash as Hex;
+
+      // Step 2: Upload file to Pinata
+      setMintProgress("Uploading file to IPFS...");
+      const fileUploadResponse: PinataUploadResponse = await uploadFile(selectedFile, "public");
+      const fileUrl = getGatewayUrl(fileUploadResponse.cid);
+
+      // Step 3: Create and upload metadata to Pinata
+      setMintProgress("Creating metadata...");
+      const nftMetadata = {
+        name: metadata.title,
+        description: metadata.description,
+        image: fileUrl,
+        external_url: fileUrl,
+        attributes: [
+          {
+            trait_type: "Work Type",
+            value: metadata.workType,
+          },
+          ...(metadata.category ? [{
+            trait_type: "Category",
+            value: metadata.category,
+          }] : []),
+          ...(metadata.tags && metadata.tags.length > 0 ? [{
+            trait_type: "Tags",
+            value: metadata.tags.join(", "),
+          }] : []),
+        ],
+        properties: {
+          fileHash: fileHashBytes32,
+          fileUrl: fileUrl,
+          mimeType: selectedFile.type,
+          fileName: selectedFile.name,
+        },
       };
+
+      setMintProgress("Uploading metadata to IPFS...");
+      const metadataUploadResponse: PinataUploadResponse = await uploadMetadata(
+        nftMetadata,
+        "metadata.json",
+        "public"
+      );
+      const metadataUrl = getGatewayUrl(metadataUploadResponse.cid);
+
+      // Step 4: Get wallet provider and create NFT service
+      setMintProgress("Preparing blockchain transaction...");
+      const walletProvider = ethereumProvider as unknown as EIP1193Provider;
       
-      setTransaction(mockTransaction);
+      // Note: Chain switching will happen automatically in mintCertificate
+      const nftService = createNftService(NETWORKS.ETH_SEPOLIA, walletProvider, walletAddress);
 
-      // Simulate transaction confirmation
-      setTimeout(() => {
-        const confirmedTransaction: Transaction = {
-          ...mockTransaction,
-          status: 'success',
-          blockNumber: Math.floor(Math.random() * 1000000) + 50000000,
-          gasUsed: (Math.random() * 200000 + 100000).toString()
-        };
+      // Step 5: Mint NFT certificate
+      // Set max royalty BPS (10000 = 100%) - only owner can receive royalty
+      setMintProgress("Minting NFT certificate on blockchain...");
+      const mintResult = await nftService.mintCertificate({
+        owner: walletAddress,
+        uri: metadataUrl,
+        fileHash: fileHashBytes32,
+        royaltyRecipient: walletAddress, // Owner receives all royalties
+        royaltyBps: MAX_ROYALTY_BPS, // 100% royalty to owner
+      });
+
+      // Step 6: Create transaction object
+      const pendingTransaction: Transaction = {
+        hash: mintResult.transactionHash,
+        status: 'pending',
+        timestamp: Date.now(),
+      };
+      setTransaction(pendingTransaction);
+
+      // Step 7: Wait for transaction confirmation and get token ID
+      setMintProgress("Waiting for transaction confirmation...");
+      
+      // Note: The transaction is already confirmed in mintCertificate, but we can get more details
+      const contractAddress = nftService.getAddress();
+
+      // Create certificate
+      const newCertificate: Certificate = {
+        nftId: mintResult.tokenId?.toString() || "pending",
+        ipfsHash: fileUploadResponse.cid,
+        ipfsUrl: fileUrl,
+        metadataUrl: metadataUrl,
+        registrationDate: new Date().toISOString(),
+        transactionHash: mintResult.transactionHash,
+        blockNumber: Number(mintResult.blockNumber),
+        contractAddress: contractAddress,
+      };
+
+      // Update transaction status
+      const confirmedTransaction: Transaction = {
+        ...pendingTransaction,
+        status: 'success',
+        blockNumber: Number(mintResult.blockNumber),
+      };
+      setTransaction(confirmedTransaction);
+
+      // Step 8: Save karya to backend API
+      setMintProgress("Saving karya to database...");
+      try {
+        const apiClient = getClient();
+        const karyaApi = createKaryaApi(apiClient);
         
-        setTransaction(confirmedTransaction);
+        const karyaData = await karyaApi.createKarya({
+          title: metadata.title,
+          description: metadata.description,
+          type: metadata.workType,
+          category: metadata.category || undefined,
+          tag: metadata.tags && metadata.tags.length > 0 ? metadata.tags : undefined,
+          fileUrl: fileUrl,
+          fileHash: fileHashBytes32, // Already a hex string (0x...)
+          nftId: mintResult.tokenId?.toString() || newCertificate.nftId,
+          txHash: mintResult.transactionHash,
+        });
 
-        // Generate certificate
-        const mockCertificate: Certificate = {
-          nftId: Math.floor(Math.random() * 10000).toString(),
-          ipfsHash: 'Qm' + Math.random().toString(16).substr(2, 44),
-          ipfsUrl: `https://ipfs.io/ipfs/Qm${Math.random().toString(16).substr(2, 44)}`,
-          metadataUrl: `https://ipfs.io/ipfs/Qm${Math.random().toString(16).substr(2, 44)}`,
-          registrationDate: new Date().toISOString(),
-          transactionHash: confirmedTransaction.hash,
-          blockNumber: confirmedTransaction.blockNumber!,
-          contractAddress: '0x' + Math.random().toString(16).substr(2, 40)
-        };
+        console.log("Karya saved successfully:", karyaData);
+      } catch (apiError) {
+        console.error("Failed to save karya to API:", apiError);
+        // Don't fail the entire minting process if API call fails
+        // The NFT is already minted, so we just log the error
+        const errorMessage = apiError instanceof Error ? apiError.message : "Unknown error";
+        console.warn(`API save failed but NFT minted successfully: ${errorMessage}`);
+      }
 
-        setCertificate(mockCertificate);
-        setCurrentStep('result');
-      }, 5000);
+      setCertificate(newCertificate);
+      setCurrentStep('result');
+      setMintProgress("");
 
     } catch (error) {
       console.error('Minting failed:', error);
-      setTransaction({
-        hash: '0x' + Math.random().toString(16).substr(2, 64),
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      setMintProgress(`Error: ${errorMessage}`);
+      
+      // Create failed transaction if we have a hash
+      const failedTransaction: Transaction = {
+        hash: transaction?.hash || ('0x' + Math.random().toString(16).substr(2, 64)),
         status: 'failed',
         timestamp: Date.now()
-      });
+      };
+      setTransaction(failedTransaction);
+      
+      // Show error to user
+      alert(`Minting failed: ${errorMessage}`);
     } finally {
       setIsMinting(false);
     }
@@ -308,6 +448,7 @@ export function RegisterPage() {
                   canMint={!!canMint}
                   file={selectedFile}
                   metadata={metadata}
+                  progress={mintProgress}
                 />
               )}
             </div>
