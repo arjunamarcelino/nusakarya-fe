@@ -5,19 +5,38 @@ import { VerificationInput } from "../../_components/verify/VerificationInput";
 import { VerificationResult } from "../../_components/verify/VerificationResult";
 import { FileUpload } from "../../_components/verify/FileUpload";
 import { Header } from "../Header";
+import { getApiClient, createKaryaApi } from "@/app/_libs/api";
+import { ApiError } from "@/app/_libs/api";
 
 interface WorkVerification {
   isVerified: boolean;
   work?: {
+    id: string;
     title: string;
-    creator: string;
-    creatorWallet: string;
-    mintDate: string;
-    tokenId: string;
-    ipfsLink: string;
-    transactionHash: string;
-    blockNumber: number;
-    contractAddress: string;
+    description: string;
+    type: string;
+    category: string | null;
+    tags: string[];
+    fileUrl: string;
+    fileHash: string;
+    nftId: string | null;
+    txHash: string | null;
+    createdAt: string;
+    creator: {
+      id: string;
+      walletAddress: string | null;
+      email: string | null;
+    };
+    licenses: Array<{
+      id: string;
+      type: string;
+      price: number;
+      duration: number;
+      description: string;
+      tnc: string;
+      txHash: string | null;
+      createdAt: string;
+    }>;
   };
   error?: string;
 }
@@ -27,36 +46,80 @@ export function VerifyPage() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [inputMethod, setInputMethod] = useState<'file' | 'hash'>('file');
 
-  const handleVerification = async () => {
+  const handleVerification = async (input: { hash: string }) => {
     setIsVerifying(true);
     setVerificationResult(null);
 
     try {
-      // Simulate verification process
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Ensure hash has 0x prefix for API
+      let hash = input.hash.trim();
+      if (!hash.startsWith('0x')) {
+        hash = `0x${hash}`;
+      }
 
-      // Mock verification result - in real implementation, this would check the blockchain
-      const mockResult: WorkVerification = {
-        isVerified: Math.random() > 0.3, // 70% chance of being verified for demo
-        work: Math.random() > 0.3 ? {
-          title: "Karya Digital Terdaftar",
-          creator: "John Doe",
-          creatorWallet: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
-          mintDate: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-          tokenId: Math.floor(Math.random() * 10000).toString(),
-          ipfsLink: `https://ipfs.io/ipfs/Qm${Math.random().toString(16).substr(2, 44)}`,
-          transactionHash: '0x' + Math.random().toString(16).substr(2, 64),
-          blockNumber: Math.floor(Math.random() * 1000000) + 50000000,
-          contractAddress: '0x' + Math.random().toString(16).substr(2, 40)
-        } : undefined,
-        error: Math.random() <= 0.3 ? "Karya tidak ditemukan dalam sistem" : undefined
+      if (!hash || hash === '0x') {
+        throw new Error("Hash harus disediakan");
+      }
+
+      // Create API client without authentication (public endpoint)
+      const client = getApiClient();
+      const karyaApi = createKaryaApi(client);
+      
+      // Call verify API
+      const karyaData = await karyaApi.verifyKarya(hash);
+
+      // Map API response to WorkVerification format
+      const result: WorkVerification = {
+        isVerified: true,
+        work: {
+          id: karyaData.id,
+          title: karyaData.title,
+          description: karyaData.description,
+          type: karyaData.type,
+          category: karyaData.category || null,
+          tags: karyaData.tag || [],
+          fileUrl: karyaData.fileUrl,
+          fileHash: karyaData.fileHash,
+          nftId: karyaData.nftId || null,
+          txHash: karyaData.txHash || null,
+          createdAt: karyaData.createdAt,
+          creator: {
+            id: karyaData.user.id,
+            walletAddress: karyaData.user.walletAddress || null,
+            email: karyaData.user.email || null,
+          },
+          licenses: karyaData.licenses.map(license => ({
+            id: license.id,
+            type: license.type,
+            price: license.price,
+            duration: license.duration,
+            description: license.description,
+            tnc: license.tnc,
+            txHash: license.txHash || null,
+            createdAt: license.createdAt,
+          })),
+        },
       };
 
-      setVerificationResult(mockResult);
-    } catch {
+      setVerificationResult(result);
+    } catch (err) {
+      console.error("Verification error:", err);
+      
+      let errorMessage = "Terjadi kesalahan saat memverifikasi karya";
+      
+      if (err instanceof ApiError) {
+        if (err.status === 404) {
+          errorMessage = "Karya tidak ditemukan dalam sistem";
+        } else {
+          errorMessage = err.message || errorMessage;
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+
       setVerificationResult({
         isVerified: false,
-        error: "Terjadi kesalahan saat memverifikasi karya"
+        error: errorMessage,
       });
     } finally {
       setIsVerifying(false);

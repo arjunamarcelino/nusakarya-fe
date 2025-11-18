@@ -1,19 +1,36 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { calculateFileHash } from "@/app/_libs/utils/fileHash";
 
 interface FileUploadProps {
-  onVerify: (input: { file: File }) => void;
+  onVerify: (input: { hash: string }) => void;
   isVerifying: boolean;
 }
 
 export function FileUpload({ onVerify, isVerifying }: FileUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileHash, setFileHash] = useState<string | null>(null);
+  const [isCalculatingHash, setIsCalculatingHash] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = async (file: File) => {
     setSelectedFile(file);
+    setFileHash(null);
+    setIsCalculatingHash(true);
+
+    try {
+      // Calculate hash when file is selected
+      const hash = await calculateFileHash(file);
+      // Keep 0x prefix for API (calculateFileHash already returns with 0x)
+      setFileHash(hash);
+    } catch (error) {
+      console.error("Error calculating file hash:", error);
+      setFileHash(null);
+    } finally {
+      setIsCalculatingHash(false);
+    }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -44,8 +61,15 @@ export function FileUpload({ onVerify, isVerifying }: FileUploadProps) {
   };
 
   const handleVerify = () => {
-    if (selectedFile) {
-      onVerify({ file: selectedFile });
+    if (fileHash) {
+      onVerify({ hash: fileHash });
+    }
+  };
+
+  const copyHashToClipboard = () => {
+    if (fileHash) {
+      navigator.clipboard.writeText(fileHash);
+      // You could add a toast notification here
     }
   };
 
@@ -119,7 +143,7 @@ export function FileUpload({ onVerify, isVerifying }: FileUploadProps) {
       ) : (
         <div className="space-y-4">
           <div className="border border-[var(--color-nusa-blue)]/20 rounded-lg p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-[var(--color-nusa-blue)]/10 rounded-lg flex items-center justify-center">
                   <svg
@@ -146,20 +170,60 @@ export function FileUpload({ onVerify, isVerifying }: FileUploadProps) {
                 </div>
               </div>
               <button
-                onClick={() => setSelectedFile(null)}
+                onClick={() => {
+                  setSelectedFile(null);
+                  setFileHash(null);
+                }}
                 className="text-[var(--color-deep-navy)]/50 hover:text-[var(--color-nusa-blue)] transition-colors"
-                disabled={isVerifying}
+                disabled={isVerifying || isCalculatingHash}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
+
+            {/* Hash Display */}
+            <div className="mt-4 pt-4 border-t border-[var(--color-nusa-blue)]/10">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-[var(--color-deep-navy)]/70">
+                  File Hash (SHA-256):
+                </span>
+                {fileHash && (
+                  <button
+                    onClick={copyHashToClipboard}
+                    className="text-[var(--color-nusa-blue)] hover:text-[var(--color-nusa-blue)]/80 transition-colors text-sm flex items-center space-x-1"
+                    title="Salin Hash"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <span>Salin</span>
+                  </button>
+                )}
+              </div>
+              {isCalculatingHash ? (
+                <div className="flex items-center space-x-2 text-sm text-[var(--color-deep-navy)]/70">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--color-nusa-blue)]"></div>
+                  <span>Menghitung hash...</span>
+                </div>
+              ) : fileHash ? (
+                <div className="bg-[var(--color-nusa-blue)]/5 border border-[var(--color-nusa-blue)]/20 rounded-lg p-3">
+                  <p className="font-mono text-sm text-[var(--color-deep-navy)] break-all">
+                    {fileHash}
+                  </p>
+                </div>
+              ) : (
+                <div className="text-sm text-[var(--color-accent-red)]">
+                  Gagal menghitung hash. Silakan coba lagi.
+                </div>
+              )}
+            </div>
           </div>
 
           <button
             onClick={handleVerify}
-            disabled={isVerifying}
+            disabled={isVerifying || isCalculatingHash || !fileHash}
             className="w-full bg-[var(--color-nusa-blue)] text-white py-3 px-6 rounded-lg font-medium hover:bg-[var(--color-nusa-blue)]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isVerifying ? (

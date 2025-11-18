@@ -162,8 +162,8 @@ export function Transactions() {
     );
   };
 
-  const getBasescanUrl = (txHash: string) => {
-    return `https://basescan.org/tx/${txHash}`;
+  const getBlockExplorerUrl = (txHash: string) => {
+    return `https://sepolia.etherscan.io/tx/${txHash}`;
   };
 
   const totalTransactions = transactions.length;
@@ -324,7 +324,7 @@ export function Transactions() {
                   
                   <div className="flex flex-col space-y-2 ml-6">
                     <a
-                      href={getBasescanUrl(transaction.transactionHash)}
+                      href={getBlockExplorerUrl(transaction.transactionHash)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
@@ -332,7 +332,7 @@ export function Transactions() {
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                       </svg>
-                      Lihat di Basescan
+                      Lihat di Explorer
                     </a>
                   </div>
                 </div>
